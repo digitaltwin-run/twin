@@ -27,6 +27,7 @@ REQUIRED_TRAITS = {
     "notification",
     "outbox",
     "probe",
+    "uri-process",
 }
 REQUIRED_SURFACES = ("cli", "shell", "rest", "mcp")
 REQUIRED_EVENT_METADATA = {
@@ -78,12 +79,25 @@ REQUIRED_MESSAGES = {
     "Observation",
     "EvidenceRef",
     "OutboxMessage",
+    "UriRoute",
+    "UriCapability",
+    "ResolutionGap",
+    "CapabilityMap",
+    "RetryPolicy",
+    "UriProcessStep",
+    "UriProcessDefinition",
+    "UriProcessPlan",
+    "UriProcessRun",
+    "UriStepReceipt",
+    "HumanTask",
 }
 REQUIRED_SERVICES = {
     "TwinCommandService",
     "TwinQueryService",
     "TwinEventStore",
     "TwinProjectionService",
+    "TwinUriProcessCommandService",
+    "TwinUriProcessQueryService",
 }
 EXPECTED_OUTPUTS = [
     "twin.manifest.json",
@@ -92,7 +106,36 @@ EXPECTED_OUTPUTS = [
     "conformance.json",
 ]
 LANGUAGE_PATTERN = re.compile(r"^[A-Za-z][A-Za-z0-9_.+\-]{0,63}$")
-OPERATION_PATTERN = re.compile(r"^twin\.[a-z][a-z0-9.\-]*$")
+OPERATION_PATTERN = re.compile(r"^(?:twin|uri)\.[a-z][a-z0-9.\-]*$")
+CAPABILITY_PATTERN = re.compile(r"^[a-z][a-z0-9.\-]*$")
+URI_ROUTE_GRAMMAR = "scheme://uri-authority/resource[/subresource...]/query|command/action"
+URI_ROUTE_PATTERN = re.compile(
+    r"^(?P<scheme>[a-z][a-z0-9+.-]*)://"
+    r"(?P<authority>[A-Za-z0-9._~-]+)"
+    r"(?P<resources>(?:/[A-Za-z0-9._~-]+)+)/"
+    r"(?P<effect>query|command)/(?P<action>[A-Za-z0-9._~-]+)$"
+)
+REQUIRED_RESOLUTION_GAPS = {
+    "connector_unavailable",
+    "provider_not_implemented",
+    "credential_missing",
+    "capability_missing",
+    "precondition_failed",
+    "authority_missing",
+}
+REQUIRED_PROCESS_STATES = {
+    "PLANNED",
+    "WAITING",
+    "READY",
+    "RUNNING",
+    "SUCCEEDED",
+    "FAILED",
+    "CANCELLED",
+    "COMPENSATING",
+    "COMPENSATED",
+}
+REQUIRED_TERMINAL_STATES = {"SUCCEEDED", "FAILED", "CANCELLED", "COMPENSATED"}
+REQUIRED_HUMAN_TASK_STATES = {"PENDING", "RESOLVED", "DECLINED", "CANCELLED", "EXPIRED"}
 UNSAFE_SHELL_PATTERN = re.compile(r"[;&|`$<>\n\r]")
 
 
@@ -296,7 +339,7 @@ def _validate_operations(
         path = f"$.operations[{index}]"
         operation_id = operation.get("id")
         if not isinstance(operation_id, str) or not OPERATION_PATTERN.fullmatch(operation_id):
-            _add(diagnostics, "TWIN-OPERATION-001", path + ".id", "must be a canonical twin.* operation ID")
+            _add(diagnostics, "TWIN-OPERATION-001", path + ".id", "must be a canonical twin.* or uri.* operation ID")
             continue
         if operation_id in operations:
             _add(diagnostics, "TWIN-OPERATION-001", path + ".id", f"duplicate operation {operation_id}")
@@ -341,6 +384,93 @@ def _validate_operations(
     return operations
 
 
+def _validate_uri_operations(
+    profile: dict[str, Any], operations: dict[str, dict[str, Any]], diagnostics: list[Diagnostic]
+) -> None:
+    seen_uris: dict[str, str] = {}
+    seen_capabilities: dict[str, str] = {}
+    reviewed_providers = {"twin-core"} | {
+        connector.get("id")
+        for raw in _list(profile.get("connectors"))
+        if (connector := _dict(raw)) and isinstance(connector.get("id"), str)
+    }
+    for operation_id, operation in operations.items():
+        path = f"$.operations[{operation_id}]"
+        uri = operation.get("uri")
+        match = URI_ROUTE_PATTERN.fullmatch(uri) if isinstance(uri, str) else None
+        if not match:
+            _add(
+                diagnostics,
+                "TWIN-URI-001",
+                path + ".uri",
+                "must match scheme://uri-authority/resource.../(query|command)/action without query or fragment",
+            )
+        else:
+            expected_effect = operation.get("kind")
+            if match.group("effect") != expected_effect:
+                _add(
+                    diagnostics,
+                    "TWIN-URI-001",
+                    path + ".uri",
+                    f"URI effect {match.group('effect')} disagrees with {expected_effect}",
+                )
+            previous = seen_uris.get(uri)
+            if previous:
+                _add(diagnostics, "TWIN-URI-001", path + ".uri", f"duplicates operation URI owned by {previous}")
+            else:
+                seen_uris[uri] = operation_id
+
+        capability = operation.get("capability")
+        if not isinstance(capability, str) or not CAPABILITY_PATTERN.fullmatch(capability):
+            _add(
+                diagnostics,
+                "TWIN-CAPABILITY-001",
+                path + ".capability",
+                "must be a canonical capability identifier",
+            )
+        else:
+            previous = seen_capabilities.get(capability)
+            if previous:
+                _add(
+                    diagnostics,
+                    "TWIN-CAPABILITY-001",
+                    path + ".capability",
+                    f"duplicates capability owned by {previous}",
+                )
+            else:
+                seen_capabilities[capability] = operation_id
+        if operation.get("providerRef") not in reviewed_providers:
+            _add(
+                diagnostics,
+                "TWIN-CAPABILITY-001",
+                path + ".providerRef",
+                "must identify twin-core or a declared reviewed connector",
+            )
+        if not isinstance(operation.get("risk"), str) or not re.fullmatch(r"R[0-4]", operation.get("risk", "")):
+            _add(diagnostics, "TWIN-CAPABILITY-001", path + ".risk", "must be a risk class from R0 through R4")
+        if operation.get("status") not in {"available", "planned", "unavailable"}:
+            _add(
+                diagnostics,
+                "TWIN-CAPABILITY-001",
+                path + ".status",
+                "must be available, planned or unavailable",
+            )
+        for field in ("credentialRefs", "requiresCapabilities", "featureFlags", "preconditions"):
+            if field in operation:
+                values = operation.get(field)
+                if (
+                    not isinstance(values, list)
+                    or not values
+                    or not all(isinstance(item, str) and item for item in values)
+                ):
+                    _add(
+                        diagnostics,
+                        "TWIN-CAPABILITY-001",
+                        path + f".{field}",
+                        "must be an array of non-empty identifiers or reviewed preconditions",
+                    )
+
+
 def _validate_traits(
     profile: dict[str, Any], operations: dict[str, dict[str, Any]], diagnostics: list[Diagnostic]
 ) -> None:
@@ -368,6 +498,261 @@ def _validate_traits(
                 )
     for missing in sorted(REQUIRED_TRAITS - seen):
         _add(diagnostics, "TWIN-TRAIT-001", "$.traits", f"missing required trait {missing}")
+
+
+def _validate_uri_process_policy(profile: dict[str, Any], diagnostics: list[Diagnostic]) -> None:
+    capabilities = _dict(profile.get("uriCapabilities"))
+    if capabilities.get("routePattern") != URI_ROUTE_GRAMMAR:
+        _add(
+            diagnostics,
+            "TWIN-URI-001",
+            "$.uriCapabilities.routePattern",
+            f"must equal {URI_ROUTE_GRAMMAR}",
+        )
+    for field in (
+        "reviewedBaselineRequired",
+        "liveDiscoveryRequired",
+        "capabilityMapHashRequired",
+        "resolutionBeforeExecution",
+        "plannedRouteFailsClosed",
+        "connectorRouteMustMatchPlan",
+    ):
+        if capabilities.get(field) is not True:
+            _add(diagnostics, "TWIN-CAPABILITY-001", f"$.uriCapabilities.{field}", "must be true")
+    if capabilities.get("uriAuthorityIsAuthorization") is not False:
+        _add(
+            diagnostics,
+            "TWIN-AUTH-001",
+            "$.uriCapabilities.uriAuthorityIsAuthorization",
+            "URI routing authority must never be authorization authority",
+        )
+    gaps = _list(capabilities.get("typedGaps"))
+    gap_set = {gap for gap in gaps if isinstance(gap, str)}
+    if len(gap_set) != len(gaps):
+        _add(diagnostics, "TWIN-CAPABILITY-001", "$.uriCapabilities.typedGaps", "must be unique strings")
+    for missing in sorted(REQUIRED_RESOLUTION_GAPS - gap_set):
+        _add(
+            diagnostics,
+            "TWIN-CAPABILITY-001",
+            "$.uriCapabilities.typedGaps",
+            f"missing fail-closed resolution gap {missing}",
+        )
+
+    runtime = _dict(profile.get("processRuntime"))
+    for field in (
+        "definitionImmutable",
+        "planPinnedToCapabilityMapHash",
+        "stepTimeoutRequired",
+        "stepRetryDeclared",
+        "stepIdempotencyRequired",
+        "stepReceiptsRequired",
+        "compensationExplicit",
+        "humanTaskCannotGrantAuthority",
+        "llmVerdictCannotGrantAuthority",
+    ):
+        if runtime.get(field) is not True:
+            _add(diagnostics, "TWIN-PROCESS-001", f"$.processRuntime.{field}", "must be true")
+    if runtime.get("replayExecutesSteps") is not False:
+        _add(
+            diagnostics,
+            "TWIN-REPLAY-001",
+            "$.processRuntime.replayExecutesSteps",
+            "process replay must never dispatch URI steps",
+        )
+    for field, required in (
+        ("states", REQUIRED_PROCESS_STATES),
+        ("terminalStates", REQUIRED_TERMINAL_STATES),
+        ("humanTaskStates", REQUIRED_HUMAN_TASK_STATES),
+    ):
+        actual = {item for item in _list(runtime.get(field)) if isinstance(item, str)}
+        for missing in sorted(required - actual):
+            _add(diagnostics, "TWIN-PROCESS-001", f"$.processRuntime.{field}", f"missing state {missing}")
+    terminal = {item for item in _list(runtime.get("terminalStates")) if isinstance(item, str)}
+    if terminal - REQUIRED_PROCESS_STATES:
+        _add(
+            diagnostics,
+            "TWIN-PROCESS-001",
+            "$.processRuntime.terminalStates",
+            "terminal states must belong to the declared process state machine",
+        )
+
+
+def _process_graph_has_cycle(step_ids: set[str], dependencies: dict[str, set[str]]) -> bool:
+    remaining = {
+        step_id: set(dependencies.get(step_id, set())) & step_ids
+        for step_id in step_ids
+    }
+    while remaining:
+        ready = {step_id for step_id, required in remaining.items() if not required}
+        if not ready:
+            return True
+        for step_id in ready:
+            remaining.pop(step_id)
+        for required in remaining.values():
+            required.difference_update(ready)
+    return False
+
+
+def _validate_processes(
+    profile: dict[str, Any], operations: dict[str, dict[str, Any]], diagnostics: list[Diagnostic]
+) -> None:
+    processes = _list(profile.get("processes"))
+    if not processes:
+        _add(diagnostics, "TWIN-PROCESS-001", "$.processes", "at least one URI Process definition is required")
+        return
+    process_revisions: set[tuple[str, int]] = set()
+    process_uris: set[str] = set()
+    uri_operations = {
+        operation.get("uri"): operation
+        for operation in operations.values()
+        if isinstance(operation.get("uri"), str)
+    }
+    for process_index, raw_process in enumerate(processes):
+        process = _dict(raw_process)
+        path = f"$.processes[{process_index}]"
+        process_id = process.get("id")
+        process_version = process.get("version")
+        if not isinstance(process_id, str) or not CAPABILITY_PATTERN.fullmatch(process_id):
+            _add(diagnostics, "TWIN-PROCESS-001", path + ".id", "must be a canonical immutable process ID")
+        elif type(process_version) is int and process_version > 0:
+            revision = (process_id, process_version)
+            if revision in process_revisions:
+                _add(
+                    diagnostics,
+                    "TWIN-PROCESS-001",
+                    path + ".version",
+                    f"duplicate immutable process revision {process_id}@{process_version}",
+                )
+            else:
+                process_revisions.add(revision)
+        process_uri = process.get("uri")
+        process_uri_match = URI_ROUTE_PATTERN.fullmatch(process_uri) if isinstance(process_uri, str) else None
+        if not process_uri_match or process_uri_match.group("effect") != "query":
+            _add(
+                diagnostics,
+                "TWIN-URI-001",
+                path + ".uri",
+                "a process definition must have a canonical query URI",
+            )
+        elif process_uri in process_uris or process_uri in uri_operations:
+            _add(diagnostics, "TWIN-URI-001", path + ".uri", "process URI must be globally unique")
+        else:
+            process_uris.add(process_uri)
+        if type(process_version) is not int or process_version < 1:
+            _add(diagnostics, "TWIN-PROCESS-001", path + ".version", "must be a positive integer")
+        if process.get("immutable") is not True:
+            _add(diagnostics, "TWIN-PROCESS-001", path + ".immutable", "must be true")
+        if not isinstance(process.get("intent"), str) or not process.get("intent"):
+            _add(diagnostics, "TWIN-PROCESS-001", path + ".intent", "must describe the process outcome")
+
+        steps = _list(process.get("steps"))
+        if not steps:
+            _add(diagnostics, "TWIN-PROCESS-001", path + ".steps", "must contain at least one step")
+            continue
+        step_ids: set[str] = set()
+        dependencies: dict[str, set[str]] = {}
+        for step_index, raw_step in enumerate(steps):
+            step = _dict(raw_step)
+            step_path = f"{path}.steps[{step_index}]"
+            step_id = step.get("id")
+            if not isinstance(step_id, str) or not CAPABILITY_PATTERN.fullmatch(step_id):
+                _add(diagnostics, "TWIN-PROCESS-001", step_path + ".id", "must be a canonical step ID")
+                continue
+            if step_id in step_ids:
+                _add(diagnostics, "TWIN-PROCESS-001", step_path + ".id", f"duplicate step {step_id}")
+            step_ids.add(step_id)
+            dependency_values = _list(step.get("dependsOn"))
+            if not all(isinstance(item, str) and item for item in dependency_values):
+                _add(diagnostics, "TWIN-PROCESS-001", step_path + ".dependsOn", "must contain step IDs")
+            dependencies[step_id] = {item for item in dependency_values if isinstance(item, str)}
+
+            operation_id = step.get("operation")
+            operation = operations.get(operation_id)
+            if not operation:
+                _add(diagnostics, "TWIN-PROCESS-001", step_path + ".operation", f"unknown operation {operation_id}")
+            else:
+                if step.get("uri") != operation.get("uri"):
+                    _add(
+                        diagnostics,
+                        "TWIN-URI-001",
+                        step_path + ".uri",
+                        "must exactly match the URI owned by the declared operation",
+                    )
+                for step_field, operation_field in (
+                    ("capability", "capability"),
+                    ("providerRef", "providerRef"),
+                ):
+                    if step.get(step_field) != operation.get(operation_field):
+                        _add(
+                            diagnostics,
+                            "TWIN-CAPABILITY-001",
+                            step_path + f".{step_field}",
+                            f"must exactly match {operation_field} owned by the declared operation",
+                        )
+            timeout = step.get("timeoutMs")
+            if type(timeout) is not int or timeout < 1:
+                _add(diagnostics, "TWIN-PROCESS-001", step_path + ".timeoutMs", "must be a positive integer")
+            retry = _dict(step.get("retry"))
+            attempts = retry.get("maxAttempts")
+            backoff = retry.get("backoffMs")
+            if type(attempts) is not int or not 1 <= attempts <= 10:
+                _add(
+                    diagnostics,
+                    "TWIN-PROCESS-001",
+                    step_path + ".retry.maxAttempts",
+                    "must be between 1 and 10",
+                )
+            if type(backoff) is not int or backoff < 0:
+                _add(diagnostics, "TWIN-PROCESS-001", step_path + ".retry.backoffMs", "must be non-negative")
+            failure_policy = step.get("onFailure")
+            if failure_policy not in {"stop", "continue", "compensate"}:
+                _add(diagnostics, "TWIN-PROCESS-001", step_path + ".onFailure", "must be stop, continue or compensate")
+            for field in ("idempotencyRequired", "receiptRequired"):
+                if step.get(field) is not True:
+                    _add(diagnostics, "TWIN-PROCESS-001", step_path + f".{field}", "must be true")
+            reversible = step.get("reversible")
+            inverse_uri = step.get("inverseUri")
+            if reversible is not True and reversible is not False:
+                _add(diagnostics, "TWIN-PROCESS-001", step_path + ".reversible", "must be boolean")
+            if reversible is True:
+                inverse_operation = uri_operations.get(inverse_uri)
+                if not inverse_operation or inverse_operation.get("kind") != "command":
+                    _add(
+                        diagnostics,
+                        "TWIN-PROCESS-001",
+                        step_path + ".inverseUri",
+                        "a reversible step must name a declared command URI",
+                    )
+            elif inverse_uri is not None:
+                _add(diagnostics, "TWIN-PROCESS-001", step_path + ".inverseUri", "is allowed only when reversible")
+            if failure_policy == "compensate" and reversible is not True:
+                _add(
+                    diagnostics,
+                    "TWIN-PROCESS-001",
+                    step_path + ".onFailure",
+                    "compensate requires an explicit reversible inverse URI",
+                )
+            if operation and operation.get("kind") == "command":
+                if not isinstance(step.get("authorityScope"), str) or not step.get("authorityScope"):
+                    _add(
+                        diagnostics,
+                        "TWIN-AUTH-001",
+                        step_path + ".authorityScope",
+                        "every command step must name an external authority scope",
+                    )
+
+        for step_id, required in dependencies.items():
+            for dependency in sorted(required - step_ids):
+                _add(
+                    diagnostics,
+                    "TWIN-PROCESS-001",
+                    path + ".steps",
+                    f"step {step_id} depends on unknown step {dependency}",
+                )
+            if step_id in required:
+                _add(diagnostics, "TWIN-PROCESS-001", path + ".steps", f"step {step_id} depends on itself")
+        if _process_graph_has_cycle(step_ids, dependencies):
+            _add(diagnostics, "TWIN-PROCESS-001", path + ".steps", "step dependency graph must be acyclic")
 
 
 def _binding_operation_counts(bindings: list[Any]) -> Counter[str]:
@@ -584,6 +969,62 @@ def _validate_proto(
         ("EvidenceRef", {"evidence_id", "aggregate_id", "target_uri"}),
         ("Observation", {"observation_id", "aggregate_id", "target_uri", "status", "evidence"}),
         ("OutboxMessage", {"message_id", "aggregate_id", "operation", "credential_ref", "source_event_ids"}),
+        ("UriRoute", {"uri", "scheme", "uri_authority", "resource_path", "effect", "action"}),
+        ("UriCapability", {"capability_id", "effect", "status", "risk", "providers"}),
+        ("ResolutionGap", {"kind", "capability_id", "detail", "execution_policy"}),
+        ("CapabilityMap", {"map_hash", "baseline_version", "observed_at", "capabilities", "evidence"}),
+        (
+            "UriProcessStep",
+            {
+                "step_id",
+                "operation_id",
+                "route",
+                "capability_id",
+                "provider_ref",
+                "depends_on",
+                "timeout_ms",
+                "retry",
+                "failure_policy",
+                "reversible",
+                "inverse_uri",
+                "authority_scope",
+                "idempotency_required",
+                "receipt_required",
+            },
+        ),
+        ("UriProcessDefinition", {"process_id", "process_uri", "version", "intent", "steps", "immutable"}),
+        ("UriProcessPlan", {"plan_id", "process_id", "process_version", "capability_map_hash", "resolved", "steps", "gaps"}),
+        (
+            "UriStepReceipt",
+            {
+                "receipt_id",
+                "run_id",
+                "step_id",
+                "operation_uri",
+                "attempt",
+                "idempotency_key",
+                "status",
+                "event_ids",
+                "evidence",
+                "output_digest_sha256",
+            },
+        ),
+        ("HumanTask", {"task_id", "run_id", "step_id", "state", "requested_actor_ref", "required_authority_scope", "decision_ref"}),
+        (
+            "UriProcessRun",
+            {
+                "run_id",
+                "plan_id",
+                "capability_map_hash",
+                "state",
+                "current_step_ids",
+                "actor_ref",
+                "authority_ref",
+                "step_receipts",
+                "human_tasks",
+                "gaps",
+            },
+        ),
     ):
         for missing in sorted(required_fields - message_fields(message_name)):
             _add(diagnostics, "TWIN-PROTO-001", "$.protobuf.path", f"{message_name} is missing {missing}")
@@ -592,7 +1033,7 @@ def _validate_proto(
     service_rpc_names: dict[str, set[str]] = {}
     for service_name, body in service_bodies.items():
         declarations = re.findall(
-            r"\brpc\s+([A-Za-z_]\w*)\s*\(\s*([A-Za-z_.]\w*)\s*\)\s*returns\s*\(\s*([A-Za-z_.]\w*)\s*\)",
+            r"\brpc\s+([A-Za-z_]\w*)\s*\(\s*((?:[A-Za-z_]\w*\.)*[A-Za-z_]\w*)\s*\)\s*returns\s*\(\s*((?:[A-Za-z_]\w*\.)*[A-Za-z_]\w*)\s*\)",
             body,
         )
         service_rpc_names[service_name] = {rpc_name for rpc_name, _, _ in declarations}
@@ -600,7 +1041,14 @@ def _validate_proto(
     for operation_id, operation in operations.items():
         request = str(operation.get("request", "")).split(".")[-1]
         response = str(operation.get("response", "")).split(".")[-1]
-        service_name = "TwinCommandService" if operation.get("kind") == "command" else "TwinQueryService"
+        if operation_id.startswith("uri."):
+            service_name = (
+                "TwinUriProcessCommandService"
+                if operation.get("kind") == "command"
+                else "TwinUriProcessQueryService"
+            )
+        else:
+            service_name = "TwinCommandService" if operation.get("kind") == "command" else "TwinQueryService"
         if (request, response) not in service_rpcs.get(service_name, set()):
             _add(
                 diagnostics,
@@ -616,6 +1064,21 @@ def _validate_proto(
             _add(diagnostics, "TWIN-PROTO-001", "$.protobuf.path", f"{service_name} is missing RPC {missing}")
     if "OBSERVATION_STATUS_UNEVALUABLE" not in clean:
         _add(diagnostics, "TWIN-PROTO-001", "$.protobuf.path", "ObservationStatus must model UNEVALUABLE")
+    for enum_value in (
+        "URI_EFFECT_QUERY",
+        "URI_EFFECT_COMMAND",
+        "RESOLUTION_GAP_KIND_CONNECTOR_UNAVAILABLE",
+        "RESOLUTION_GAP_KIND_PROVIDER_NOT_IMPLEMENTED",
+        "RESOLUTION_GAP_KIND_CREDENTIAL_MISSING",
+        "RESOLUTION_GAP_KIND_CAPABILITY_MISSING",
+        "RESOLUTION_GAP_KIND_PRECONDITION_FAILED",
+        "RESOLUTION_GAP_KIND_AUTHORITY_MISSING",
+        "URI_PROCESS_RUN_STATE_COMPENSATED",
+        "HUMAN_TASK_STATE_DECLINED",
+        "HUMAN_TASK_STATE_EXPIRED",
+    ):
+        if enum_value not in clean:
+            _add(diagnostics, "TWIN-PROTO-001", "$.protobuf.path", f"missing URI Process enum value {enum_value}")
 
 
 def _validate_generation(profile: dict[str, Any], diagnostics: list[Diagnostic]) -> None:
@@ -650,7 +1113,10 @@ def validate_profile(profile_path: str | os.PathLike[str]) -> list[Diagnostic]:
     _validate_event_sourcing(profile, diagnostics)
     _validate_core_boundaries(profile, diagnostics)
     operations = _validate_operations(profile, diagnostics)
+    _validate_uri_operations(profile, operations, diagnostics)
     _validate_traits(profile, operations, diagnostics)
+    _validate_uri_process_policy(profile, diagnostics)
+    _validate_processes(profile, operations, diagnostics)
     _validate_transports(profile, operations, diagnostics)
     _validate_proto(profile, path, operations, diagnostics)
     _validate_generation(profile, diagnostics)
@@ -690,7 +1156,24 @@ def _conformance_document(profile: dict[str, Any]) -> dict[str, Any]:
                     "surface": surface,
                     "request": operation["request"],
                     "response": operation["response"],
+                    "uri": operation["uri"],
+                    "capability": operation["capability"],
+                    "risk": operation["risk"],
                     "binding": _binding_for(profile, surface, operation_id),
+                }
+            )
+    for process in _list(profile.get("processes")):
+        process = _dict(process)
+        for step in _list(process.get("steps")):
+            step = _dict(step)
+            cases.append(
+                {
+                    "id": f"process.{process['id']}.{step['id']}",
+                    "kind": "uri-process-step",
+                    "process": process["id"],
+                    "processVersion": process["version"],
+                    "step": step,
+                    "expected": "resolved-or-typed-gap",
                 }
             )
     invariants = [
@@ -701,6 +1184,13 @@ def _conformance_document(profile: dict[str, Any]) -> dict[str, Any]:
         "connector-outbox-boundary",
         "secret-handles-only",
         "unevaluable-is-not-healthy",
+        "canonical-uri-effect-matches-cqrs",
+        "reviewed-discovery-resolution-only",
+        "capability-map-hash-pinned",
+        "process-dag-acyclic",
+        "process-step-receipts-idempotent",
+        "process-replay-observe-only",
+        "actor-identity-is-not-authority",
     ]
     cases.extend(
         {"id": f"invariant.{name}", "kind": "semantic-invariant", "expected": "pass"}
@@ -741,6 +1231,9 @@ def generate_bundle(
         "schema": "twin.transport-map/v1",
         "operations": profile["operations"],
         "transports": profile["transports"],
+        "uriCapabilities": profile["uriCapabilities"],
+        "processRuntime": profile["processRuntime"],
+        "processes": profile["processes"],
     }
     manifest = {
         "schema": "twin.bundle/v1",
@@ -757,6 +1250,7 @@ def generate_bundle(
             "sha256": _sha256(proto_bytes),
         },
         "executableCode": False,
+        "uriProcessDefinitions": len(profile["processes"]),
         "outputs": EXPECTED_OUTPUTS,
     }
 

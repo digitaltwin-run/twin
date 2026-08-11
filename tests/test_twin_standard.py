@@ -81,6 +81,155 @@ class TwinStandardTests(unittest.TestCase):
         profile = self._fixture(lambda value: value["traits"][0]["operations"].append("twin.unknown"))
         self.assertIn("TWIN-TRAIT-001", self._codes(profile))
 
+    def test_every_operation_has_a_canonical_uri_matching_cqrs(self):
+        document = self._document()
+        self.assertTrue(document["operations"])
+        for operation in document["operations"]:
+            match = twin_standard.URI_ROUTE_PATTERN.fullmatch(operation["uri"])
+            self.assertIsNotNone(match, operation["uri"])
+            self.assertEqual(operation["kind"], match.group("effect"))
+
+    def test_uri_query_string_and_embedded_identity_are_rejected(self):
+        profile = self._fixture(
+            lambda value: value["operations"][0].__setitem__(
+                "uri", "twin://user@generic/aggregate/command/reconcile?token=no"
+            )
+        )
+        self.assertIn("TWIN-URI-001", self._codes(profile))
+
+    def test_uri_effect_must_match_operation_kind(self):
+        profile = self._fixture(
+            lambda value: value["operations"][0].__setitem__(
+                "uri", "twin://generic/aggregate/query/reconcile"
+            )
+        )
+        self.assertIn("TWIN-URI-001", self._codes(profile))
+
+    def test_operation_uris_and_capabilities_are_unique(self):
+        def mutate(value):
+            value["operations"][1]["uri"] = value["operations"][0]["uri"]
+            value["operations"][1]["capability"] = value["operations"][0]["capability"]
+
+        profile = self._fixture(mutate)
+        self.assertIn("TWIN-URI-001", self._codes(profile))
+        self.assertIn("TWIN-CAPABILITY-001", self._codes(profile))
+
+    def test_capability_requires_provider_and_risk(self):
+        def mutate(value):
+            value["operations"][0]["providerRef"] = ""
+            value["operations"][0]["risk"] = "HIGH"
+
+        profile = self._fixture(mutate)
+        self.assertIn("TWIN-CAPABILITY-001", self._codes(profile))
+
+    def test_uri_policy_and_optional_requirements_are_not_ambiguous(self):
+        def mutate(value):
+            value["uriCapabilities"]["routePattern"] = "any-uri"
+            value["operations"][0]["preconditions"] = []
+
+        profile = self._fixture(mutate)
+        diagnostics = twin_standard.validate_profile(profile)
+        self.assertIn("TWIN-URI-001", {item.code for item in diagnostics})
+        self.assertIn("TWIN-CAPABILITY-001", {item.code for item in diagnostics})
+
+    def test_resolution_policy_requires_every_typed_gap(self):
+        profile = self._fixture(
+            lambda value: value["uriCapabilities"]["typedGaps"].remove("provider_not_implemented")
+        )
+        self.assertIn("TWIN-CAPABILITY-001", self._codes(profile))
+
+    def test_uri_routing_authority_is_not_authorization(self):
+        profile = self._fixture(
+            lambda value: value["uriCapabilities"].__setitem__("uriAuthorityIsAuthorization", True)
+        )
+        self.assertIn("TWIN-AUTH-001", self._codes(profile))
+
+    def test_process_definition_is_immutable_and_versioned(self):
+        def mutate(value):
+            value["processes"][0]["immutable"] = False
+            value["processes"][0]["version"] = 0
+
+        profile = self._fixture(mutate)
+        self.assertIn("TWIN-PROCESS-001", self._codes(profile))
+
+    def test_multiple_immutable_process_versions_can_coexist(self):
+        def mutate(value):
+            revision = copy.deepcopy(value["processes"][0])
+            revision["version"] = 2
+            revision["uri"] = "twin://generic/process-v2/query/observe-reconcile-notify"
+            value["processes"].append(revision)
+
+        profile = self._fixture(mutate)
+        self.assertEqual([], twin_standard.validate_profile(profile))
+
+    def test_process_step_must_reference_a_declared_operation_and_uri(self):
+        def mutate(value):
+            value["processes"][0]["steps"][0]["operation"] = "uri.unknown"
+            value["processes"][0]["steps"][1]["uri"] = "twin://generic/wrong/command/route"
+
+        profile = self._fixture(mutate)
+        diagnostics = twin_standard.validate_profile(profile)
+        self.assertTrue(any(item.code == "TWIN-PROCESS-001" and "unknown operation" in item.message for item in diagnostics))
+        self.assertIn("TWIN-URI-001", {item.code for item in diagnostics})
+
+    def test_process_step_capability_and_provider_match_operation(self):
+        def mutate(value):
+            value["processes"][0]["steps"][0]["capability"] = "wrong.capability"
+            value["processes"][0]["steps"][0]["providerRef"] = "effect-outbox"
+
+        profile = self._fixture(mutate)
+        self.assertIn("TWIN-CAPABILITY-001", self._codes(profile))
+
+    def test_process_dependency_must_exist(self):
+        profile = self._fixture(
+            lambda value: value["processes"][0]["steps"][1]["dependsOn"].append("missing")
+        )
+        diagnostics = twin_standard.validate_profile(profile)
+        self.assertTrue(any("unknown step missing" in item.message for item in diagnostics))
+        self.assertFalse(any("acyclic" in item.message for item in diagnostics))
+
+    def test_process_dependency_graph_must_be_acyclic(self):
+        profile = self._fixture(
+            lambda value: value["processes"][0]["steps"][0].__setitem__("dependsOn", ["notify"])
+        )
+        diagnostics = twin_standard.validate_profile(profile)
+        self.assertTrue(any(item.code == "TWIN-PROCESS-001" and "acyclic" in item.message for item in diagnostics))
+
+    def test_process_step_timeout_and_retry_are_bounded(self):
+        def mutate(value):
+            step = value["processes"][0]["steps"][0]
+            step["timeoutMs"] = 0
+            step["retry"]["maxAttempts"] = 11
+
+        profile = self._fixture(mutate)
+        self.assertIn("TWIN-PROCESS-001", self._codes(profile))
+
+    def test_command_process_step_requires_external_authority_scope(self):
+        profile = self._fixture(
+            lambda value: value["processes"][0]["steps"][0].__setitem__("authorityScope", "")
+        )
+        self.assertIn("TWIN-AUTH-001", self._codes(profile))
+
+    def test_compensation_requires_declared_inverse_command(self):
+        profile = self._fixture(
+            lambda value: value["processes"][0]["steps"][1].__setitem__("onFailure", "compensate")
+        )
+        self.assertIn("TWIN-PROCESS-001", self._codes(profile))
+
+    def test_process_replay_never_dispatches_steps(self):
+        profile = self._fixture(
+            lambda value: value["processRuntime"].__setitem__("replayExecutesSteps", True)
+        )
+        self.assertIn("TWIN-REPLAY-001", self._codes(profile))
+
+    def test_actor_twin_and_llm_cannot_grant_authority(self):
+        def mutate(value):
+            value["processRuntime"]["humanTaskCannotGrantAuthority"] = False
+            value["processRuntime"]["llmVerdictCannotGrantAuthority"] = False
+
+        profile = self._fixture(mutate)
+        self.assertIn("TWIN-PROCESS-001", self._codes(profile))
+
     def test_command_without_events_fails_cqrs(self):
         profile = self._fixture(lambda value: value["operations"][0].__setitem__("emits", []))
         self.assertIn("TWIN-CQRS-001", self._codes(profile))
@@ -180,6 +329,26 @@ class TwinStandardTests(unittest.TestCase):
         )
         self.assertIn("TWIN-PROTO-001", self._codes(profile))
 
+    def test_uri_process_proto_messages_are_required(self):
+        profile = self._fixture(
+            proto_mutate=lambda text: text.replace("message UriRoute {", "message RemovedUriRoute {", 1)
+        )
+        self.assertIn("TWIN-PROTO-001", self._codes(profile))
+
+    def test_uri_process_proto_carries_capability_and_safety_flags(self):
+        profile = self._fixture(
+            proto_mutate=lambda text: text.replace("  string provider_ref = 12;\n", "", 1)
+        )
+        self.assertIn("TWIN-PROTO-001", self._codes(profile))
+
+    def test_uri_process_operations_require_specialized_rpc(self):
+        profile = self._fixture(
+            proto_mutate=lambda text: text.replace(
+                "  rpc Start(StartUriProcessCommand) returns (CommandReceipt);\n", "", 1
+            )
+        )
+        self.assertIn("TWIN-PROTO-001", self._codes(profile))
+
     def test_proto_secret_value_field_fails(self):
         profile = self._fixture(
             proto_mutate=lambda text: text.replace(
@@ -224,6 +393,19 @@ class TwinStandardTests(unittest.TestCase):
         operations = self._document()["operations"]
         transport_cases = [item for item in conformance["cases"] if item["kind"] == "transport-binding"]
         self.assertEqual(len(operations) * len(twin_standard.REQUIRED_SURFACES), len(transport_cases))
+
+    def test_generated_bundle_contains_uri_process_contracts(self):
+        temporary = tempfile.TemporaryDirectory()
+        self.addCleanup(temporary.cleanup)
+        destination = Path(temporary.name) / "bundle"
+        twin_standard.generate_bundle(PROFILE, destination, "rust")
+        transport = json.loads((destination / "transport-map.json").read_text(encoding="utf-8"))
+        conformance = json.loads((destination / "conformance.json").read_text(encoding="utf-8"))
+        manifest = json.loads((destination / "twin.manifest.json").read_text(encoding="utf-8"))
+        self.assertEqual(self._document()["processes"], transport["processes"])
+        self.assertEqual(1, manifest["uriProcessDefinitions"])
+        process_cases = [item for item in conformance["cases"] if item["kind"] == "uri-process-step"]
+        self.assertEqual(3, len(process_cases))
 
     def test_existing_destination_is_never_overwritten(self):
         temporary = tempfile.TemporaryDirectory()

@@ -68,6 +68,49 @@
       "authorityDecisions": false
     }
   ],
+  "uriCapabilities": {
+    "routePattern": "scheme://uri-authority/resource[/subresource...]/query|command/action",
+    "reviewedBaselineRequired": true,
+    "liveDiscoveryRequired": true,
+    "capabilityMapHashRequired": true,
+    "resolutionBeforeExecution": true,
+    "plannedRouteFailsClosed": true,
+    "connectorRouteMustMatchPlan": true,
+    "uriAuthorityIsAuthorization": false,
+    "typedGaps": [
+      "connector_unavailable",
+      "provider_not_implemented",
+      "credential_missing",
+      "capability_missing",
+      "precondition_failed",
+      "authority_missing"
+    ]
+  },
+  "processRuntime": {
+    "definitionImmutable": true,
+    "planPinnedToCapabilityMapHash": true,
+    "stepTimeoutRequired": true,
+    "stepRetryDeclared": true,
+    "stepIdempotencyRequired": true,
+    "stepReceiptsRequired": true,
+    "compensationExplicit": true,
+    "replayExecutesSteps": false,
+    "humanTaskCannotGrantAuthority": true,
+    "llmVerdictCannotGrantAuthority": true,
+    "states": [
+      "PLANNED",
+      "WAITING",
+      "READY",
+      "RUNNING",
+      "SUCCEEDED",
+      "FAILED",
+      "CANCELLED",
+      "COMPENSATING",
+      "COMPENSATED"
+    ],
+    "terminalStates": ["SUCCEEDED", "FAILED", "CANCELLED", "COMPENSATED"],
+    "humanTaskStates": ["PENDING", "RESOLVED", "DECLINED", "CANCELLED", "EXPIRED"]
+  },
   "traits": [
     {"id": "reconciliation", "operations": ["twin.reconcile"]},
     {"id": "mirror", "operations": ["twin.mirror.refresh", "twin.get"]},
@@ -76,12 +119,18 @@
     {"id": "preflight-verification", "operations": ["twin.verify"]},
     {"id": "notification", "operations": ["twin.notification.enqueue"]},
     {"id": "outbox", "operations": ["twin.outbox.acknowledge", "twin.history"]},
-    {"id": "probe", "operations": ["twin.observation.publish", "twin.health"]}
+    {"id": "probe", "operations": ["twin.observation.publish", "twin.health"]},
+    {"id": "uri-process", "operations": ["uri.process.resolve", "uri.process.start", "uri.process.advance", "uri.process.cancel", "uri.capability.map", "uri.process.get"]}
   ],
   "operations": [
     {
       "id": "twin.reconcile",
       "kind": "command",
+      "uri": "twin://generic/aggregate/command/reconcile",
+      "capability": "twin.aggregate.reconcile",
+      "providerRef": "twin-core",
+      "risk": "R2",
+      "status": "available",
       "request": "subactor.twin.v1.ReconcileCommand",
       "response": "subactor.twin.v1.CommandReceipt",
       "mutating": true,
@@ -90,6 +139,11 @@
     {
       "id": "twin.mirror.refresh",
       "kind": "command",
+      "uri": "twin://generic/mirror/command/refresh",
+      "capability": "twin.mirror.refresh",
+      "providerRef": "twin-core",
+      "risk": "R1",
+      "status": "available",
       "request": "subactor.twin.v1.MirrorRefreshCommand",
       "response": "subactor.twin.v1.CommandReceipt",
       "mutating": true,
@@ -98,6 +152,11 @@
     {
       "id": "twin.invariant.evaluate",
       "kind": "command",
+      "uri": "twin://generic/invariant/command/evaluate",
+      "capability": "twin.invariant.evaluate",
+      "providerRef": "twin-core",
+      "risk": "R1",
+      "status": "available",
       "request": "subactor.twin.v1.InvariantEvaluationCommand",
       "response": "subactor.twin.v1.CommandReceipt",
       "mutating": true,
@@ -106,6 +165,11 @@
     {
       "id": "twin.simulate",
       "kind": "command",
+      "uri": "twin://generic/simulation/command/record",
+      "capability": "twin.simulation.record",
+      "providerRef": "twin-core",
+      "risk": "R1",
+      "status": "available",
       "request": "subactor.twin.v1.SimulationCommand",
       "response": "subactor.twin.v1.CommandReceipt",
       "mutating": true,
@@ -114,6 +178,11 @@
     {
       "id": "twin.verify",
       "kind": "command",
+      "uri": "twin://generic/preflight/command/verify",
+      "capability": "twin.preflight.verify",
+      "providerRef": "twin-core",
+      "risk": "R1",
+      "status": "available",
       "request": "subactor.twin.v1.VerificationCommand",
       "response": "subactor.twin.v1.CommandReceipt",
       "mutating": true,
@@ -122,6 +191,11 @@
     {
       "id": "twin.notification.enqueue",
       "kind": "command",
+      "uri": "twin://generic/notification/command/enqueue",
+      "capability": "twin.notification.enqueue",
+      "providerRef": "effect-outbox",
+      "risk": "R2",
+      "status": "available",
       "request": "subactor.twin.v1.NotificationCommand",
       "response": "subactor.twin.v1.CommandReceipt",
       "mutating": true,
@@ -130,6 +204,11 @@
     {
       "id": "twin.outbox.acknowledge",
       "kind": "command",
+      "uri": "twin://generic/outbox/command/acknowledge",
+      "capability": "twin.outbox.acknowledge",
+      "providerRef": "effect-outbox",
+      "risk": "R2",
+      "status": "available",
       "request": "subactor.twin.v1.OutboxAcknowledgeCommand",
       "response": "subactor.twin.v1.CommandReceipt",
       "mutating": true,
@@ -138,6 +217,11 @@
     {
       "id": "twin.observation.publish",
       "kind": "command",
+      "uri": "twin://generic/observation/command/publish",
+      "capability": "twin.observation.publish",
+      "providerRef": "twin-core",
+      "risk": "R1",
+      "status": "available",
       "request": "subactor.twin.v1.PublishObservationCommand",
       "response": "subactor.twin.v1.CommandReceipt",
       "mutating": true,
@@ -146,6 +230,11 @@
     {
       "id": "twin.get",
       "kind": "query",
+      "uri": "twin://generic/aggregate/query/get",
+      "capability": "twin.aggregate.get",
+      "providerRef": "twin-core",
+      "risk": "R0",
+      "status": "available",
       "request": "subactor.twin.v1.GetTwinQuery",
       "response": "subactor.twin.v1.TwinView",
       "mutating": false,
@@ -154,6 +243,11 @@
     {
       "id": "twin.history",
       "kind": "query",
+      "uri": "twin://generic/event-stream/query/history",
+      "capability": "twin.event-stream.history",
+      "providerRef": "twin-core",
+      "risk": "R0",
+      "status": "available",
       "request": "subactor.twin.v1.GetHistoryQuery",
       "response": "subactor.twin.v1.HistoryView",
       "mutating": false,
@@ -162,10 +256,149 @@
     {
       "id": "twin.health",
       "kind": "query",
+      "uri": "twin://generic/health/query/get",
+      "capability": "twin.health.get",
+      "providerRef": "twin-core",
+      "risk": "R0",
+      "status": "available",
       "request": "subactor.twin.v1.GetHealthQuery",
       "response": "subactor.twin.v1.HealthView",
       "mutating": false,
       "projection": "HealthView"
+    },
+    {
+      "id": "uri.process.resolve",
+      "kind": "query",
+      "uri": "twin://generic/process/query/resolve",
+      "capability": "twin.uri-process.resolve",
+      "providerRef": "twin-core",
+      "risk": "R0",
+      "status": "available",
+      "request": "subactor.twin.v1.ResolveUriProcessQuery",
+      "response": "subactor.twin.v1.UriProcessPlan",
+      "mutating": false,
+      "projection": "CapabilityMap"
+    },
+    {
+      "id": "uri.process.start",
+      "kind": "command",
+      "uri": "twin://generic/process/command/start",
+      "capability": "twin.uri-process.start",
+      "providerRef": "twin-core",
+      "risk": "R2",
+      "status": "available",
+      "request": "subactor.twin.v1.StartUriProcessCommand",
+      "response": "subactor.twin.v1.CommandReceipt",
+      "mutating": true,
+      "emits": ["subactor.twin.v1.UriProcessStarted"]
+    },
+    {
+      "id": "uri.process.advance",
+      "kind": "command",
+      "uri": "twin://generic/process/command/advance",
+      "capability": "twin.uri-process.advance",
+      "providerRef": "twin-core",
+      "risk": "R2",
+      "status": "available",
+      "request": "subactor.twin.v1.AdvanceUriProcessCommand",
+      "response": "subactor.twin.v1.CommandReceipt",
+      "mutating": true,
+      "emits": ["subactor.twin.v1.UriProcessStepCompleted"]
+    },
+    {
+      "id": "uri.process.cancel",
+      "kind": "command",
+      "uri": "twin://generic/process/command/cancel",
+      "capability": "twin.uri-process.cancel",
+      "providerRef": "twin-core",
+      "risk": "R2",
+      "status": "available",
+      "request": "subactor.twin.v1.CancelUriProcessCommand",
+      "response": "subactor.twin.v1.CommandReceipt",
+      "mutating": true,
+      "emits": ["subactor.twin.v1.UriProcessCancelled"]
+    },
+    {
+      "id": "uri.capability.map",
+      "kind": "query",
+      "uri": "twin://generic/capability-map/query/get",
+      "capability": "twin.uri-capability.map",
+      "providerRef": "twin-core",
+      "risk": "R0",
+      "status": "available",
+      "request": "subactor.twin.v1.GetCapabilityMapQuery",
+      "response": "subactor.twin.v1.CapabilityMap",
+      "mutating": false,
+      "projection": "CapabilityMap"
+    },
+    {
+      "id": "uri.process.get",
+      "kind": "query",
+      "uri": "twin://generic/process-run/query/get",
+      "capability": "twin.uri-process.get",
+      "providerRef": "twin-core",
+      "risk": "R0",
+      "status": "available",
+      "request": "subactor.twin.v1.GetUriProcessRunQuery",
+      "response": "subactor.twin.v1.UriProcessRun",
+      "mutating": false,
+      "projection": "UriProcessRun"
+    }
+  ],
+  "processes": [
+    {
+      "id": "generic-observe-reconcile-notify",
+      "uri": "twin://generic/process/query/observe-reconcile-notify",
+      "version": 1,
+      "immutable": true,
+      "intent": "Observe state, request reconciliation and enqueue a notification",
+      "steps": [
+        {
+          "id": "observe",
+          "operation": "twin.observation.publish",
+          "uri": "twin://generic/observation/command/publish",
+          "capability": "twin.observation.publish",
+          "providerRef": "twin-core",
+          "dependsOn": [],
+          "timeoutMs": 30000,
+          "retry": {"maxAttempts": 1, "backoffMs": 0},
+          "onFailure": "stop",
+          "idempotencyRequired": true,
+          "receiptRequired": true,
+          "reversible": false,
+          "authorityScope": "twin.observation.publish"
+        },
+        {
+          "id": "reconcile",
+          "operation": "twin.reconcile",
+          "uri": "twin://generic/aggregate/command/reconcile",
+          "capability": "twin.aggregate.reconcile",
+          "providerRef": "twin-core",
+          "dependsOn": ["observe"],
+          "timeoutMs": 60000,
+          "retry": {"maxAttempts": 3, "backoffMs": 1000},
+          "onFailure": "stop",
+          "idempotencyRequired": true,
+          "receiptRequired": true,
+          "reversible": false,
+          "authorityScope": "twin.aggregate.reconcile"
+        },
+        {
+          "id": "notify",
+          "operation": "twin.notification.enqueue",
+          "uri": "twin://generic/notification/command/enqueue",
+          "capability": "twin.notification.enqueue",
+          "providerRef": "effect-outbox",
+          "dependsOn": ["reconcile"],
+          "timeoutMs": 30000,
+          "retry": {"maxAttempts": 2, "backoffMs": 500},
+          "onFailure": "continue",
+          "idempotencyRequired": true,
+          "receiptRequired": true,
+          "reversible": false,
+          "authorityScope": "twin.notification.enqueue"
+        }
+      ]
     }
   ],
   "transports": {
@@ -182,7 +415,13 @@
         {"operation": "twin.observation.publish", "argv": ["twin", "command", "observation-publish"]},
         {"operation": "twin.get", "argv": ["twin", "query", "get"]},
         {"operation": "twin.history", "argv": ["twin", "query", "history"]},
-        {"operation": "twin.health", "argv": ["twin", "query", "health"]}
+        {"operation": "twin.health", "argv": ["twin", "query", "health"]},
+        {"operation": "uri.process.resolve", "argv": ["twin", "process", "resolve"]},
+        {"operation": "uri.process.start", "argv": ["twin", "process", "start"]},
+        {"operation": "uri.process.advance", "argv": ["twin", "process", "advance"]},
+        {"operation": "uri.process.cancel", "argv": ["twin", "process", "cancel"]},
+        {"operation": "uri.capability.map", "argv": ["twin", "capability", "map"]},
+        {"operation": "uri.process.get", "argv": ["twin", "process", "get"]}
       ]
     },
     "shell": {
@@ -201,7 +440,13 @@
         {"operation": "twin.observation.publish", "argv": ["twin", "command", "observation-publish", "{request_protojson}"]},
         {"operation": "twin.get", "argv": ["twin", "query", "get", "{request_protojson}"]},
         {"operation": "twin.history", "argv": ["twin", "query", "history", "{request_protojson}"]},
-        {"operation": "twin.health", "argv": ["twin", "query", "health", "{request_protojson}"]}
+        {"operation": "twin.health", "argv": ["twin", "query", "health", "{request_protojson}"]},
+        {"operation": "uri.process.resolve", "argv": ["twin", "process", "resolve", "{request_protojson}"]},
+        {"operation": "uri.process.start", "argv": ["twin", "process", "start", "{request_protojson}"]},
+        {"operation": "uri.process.advance", "argv": ["twin", "process", "advance", "{request_protojson}"]},
+        {"operation": "uri.process.cancel", "argv": ["twin", "process", "cancel", "{request_protojson}"]},
+        {"operation": "uri.capability.map", "argv": ["twin", "capability", "map", "{request_protojson}"]},
+        {"operation": "uri.process.get", "argv": ["twin", "process", "get", "{request_protojson}"]}
       ]
     },
     "rest": {
@@ -218,7 +463,13 @@
         {"operation": "twin.observation.publish", "method": "POST", "path": "/v1/twins/{aggregate_id}:publishObservation"},
         {"operation": "twin.get", "method": "GET", "path": "/v1/twins/{aggregate_id}"},
         {"operation": "twin.history", "method": "GET", "path": "/v1/twins/{aggregate_id}/history"},
-        {"operation": "twin.health", "method": "GET", "path": "/v1/twins/{aggregate_id}/health"}
+        {"operation": "twin.health", "method": "GET", "path": "/v1/twins/{aggregate_id}/health"},
+        {"operation": "uri.process.resolve", "method": "GET", "path": "/v1/twins/{aggregate_id}/processes:resolve"},
+        {"operation": "uri.process.start", "method": "POST", "path": "/v1/twins/{aggregate_id}/process-runs:start"},
+        {"operation": "uri.process.advance", "method": "POST", "path": "/v1/twins/{aggregate_id}/process-runs/{run_id}:advance"},
+        {"operation": "uri.process.cancel", "method": "POST", "path": "/v1/twins/{aggregate_id}/process-runs/{run_id}:cancel"},
+        {"operation": "uri.capability.map", "method": "GET", "path": "/v1/twins/{aggregate_id}/capability-map"},
+        {"operation": "uri.process.get", "method": "GET", "path": "/v1/twins/{aggregate_id}/process-runs/{run_id}"}
       ]
     },
     "mcp": {
@@ -237,7 +488,13 @@
         {"operation": "twin.observation.publish", "kind": "tool", "name": "twin_observation_publish", "requiresAuthority": true},
         {"operation": "twin.get", "kind": "resource", "name": "twin://{aggregate_id}", "requiresAuthority": false},
         {"operation": "twin.history", "kind": "resource", "name": "twin://{aggregate_id}/history", "requiresAuthority": false},
-        {"operation": "twin.health", "kind": "resource", "name": "twin://{aggregate_id}/health", "requiresAuthority": false}
+        {"operation": "twin.health", "kind": "resource", "name": "twin://{aggregate_id}/health", "requiresAuthority": false},
+        {"operation": "uri.process.resolve", "kind": "tool", "name": "twin_uri_process_resolve", "requiresAuthority": false},
+        {"operation": "uri.process.start", "kind": "tool", "name": "twin_uri_process_start", "requiresAuthority": true},
+        {"operation": "uri.process.advance", "kind": "tool", "name": "twin_uri_process_advance", "requiresAuthority": true},
+        {"operation": "uri.process.cancel", "kind": "tool", "name": "twin_uri_process_cancel", "requiresAuthority": true},
+        {"operation": "uri.capability.map", "kind": "resource", "name": "twin://{aggregate_id}/capability-map", "requiresAuthority": false},
+        {"operation": "uri.process.get", "kind": "resource", "name": "twin://{aggregate_id}/process-runs/{run_id}", "requiresAuthority": false}
       ]
     }
   },

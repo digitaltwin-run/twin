@@ -78,6 +78,74 @@ record and reports a new outcome through an authorized command. Connectors are
 thin adapters: they MUST NOT own domain rules, authority decisions or the
 event store.
 
+### 2.6 URI capabilities and resolution
+
+Every operation is also an addressable capability with one canonical URI:
+
+```text
+scheme://uri-authority/resource[/subresource...]/query|command/action
+```
+
+The URI scheme and authority identify a routing namespace. `uri-authority`
+MUST NOT be interpreted as an authorization decision. The penultimate segment
+is the CQRS effect: `query` binds only to a query operation and `command` binds
+only to a command operation. User information, query strings, fragments,
+relative paths and embedded credential material are forbidden.
+
+A reviewed baseline declares capability identity, effect, risk, prerequisites,
+credential handles and candidate providers. Live discovery reports concrete
+connector routes and safe binding status. Their composition produces an
+immutable capability map with a content hash. Resolution MUST be descriptive:
+it pins the map hash and either selects an exact reviewed connector URI or
+returns one typed gap:
+
+- `connector_unavailable`;
+- `provider_not_implemented`;
+- `credential_missing`;
+- `capability_missing`;
+- `precondition_failed`;
+- `authority_missing`.
+
+A credential handle describes technical readiness but never supplies
+authority. A planned route that discovery did not observe MUST fail closed.
+Resolution cannot dispatch the selected URI.
+
+### 2.7 URI Process definitions and runs
+
+A URI Process definition is an immutable, versioned DAG of steps. Multiple
+immutable revisions of one process ID MAY coexist; an ID and version pair and
+its canonical definition URI MUST be unique. Each step binds a declared
+operation ID to its exact canonical URI, capability and reviewed provider and
+declares:
+
+- dependencies;
+- timeout and bounded retry/backoff policy;
+- `stop`, `continue` or `compensate` failure behavior;
+- an authority scope for commands;
+- per-step idempotency and receipt requirements;
+- optional explicit inverse URI when reversible.
+
+Dependencies MUST exist, MUST NOT refer to the same step and MUST form an
+acyclic graph. A process plan resolves every step against one capability-map
+hash. Execution MUST reject a changed map, mismatched connector route,
+unresolved gap or absent external authority decision.
+
+A run moves through `PLANNED`, `WAITING`, `READY`, `RUNNING`, `SUCCEEDED`,
+`FAILED`, `CANCELLED`, `COMPENSATING` and `COMPENSATED`. Only the last four
+applicable outcomes are terminal. Every attempted step records a receipt bound
+to run, step, URI, attempt, idempotency key, event IDs, evidence and output
+digest. Retrying a step reuses its idempotency identity.
+
+Human participation is represented as a task with `PENDING`, `RESOLVED`,
+`DECLINED`, `CANCELLED` or `EXPIRED` state. An actor/persona twin MAY describe
+identity and competencies and MAY request a human task. It MUST NOT impersonate
+effective authority, accept platform terms, resolve its own approval request,
+or turn an LLM verdict or declared grant into an authority decision.
+
+Rebuilding a run projection from events is observation only. Replay MUST NOT
+dispatch URI steps, repeat human decisions, decrement quotas or invoke inverse
+routes.
+
 ## 3. Standard traits
 
 An all-traits reference profile contains these independently composable traits:
@@ -92,6 +160,7 @@ An all-traits reference profile contains these independently composable traits:
 | `notification` | Enqueue notification intent without delivering inline. |
 | `outbox` | Record and acknowledge external-effect delivery. |
 | `probe` | Publish diagnostic observations and explicit unevaluable state. |
+| `uri-process` | Resolve reviewed URI capabilities and describe replay-safe process runs. |
 
 A trait references declared operation IDs. Traits do not create an alternative
 transport or bypass CQRS.
@@ -134,6 +203,9 @@ A `twin.profile/v1` JSON object declares:
 - Event Sourcing, CQRS, authority, secret, connector and evidence invariants;
 - the complete standard trait set;
 - unique command/query operations and their protobuf types;
+- one canonical URI, capability identity and risk class for every operation;
+- URI resolution, process-runtime and human-task safety policy;
+- at least one immutable process definition with an acyclic step graph;
 - complete CLI, shell, REST and MCP bindings;
 - the four deterministic generator outputs.
 
@@ -166,6 +238,9 @@ sorted by code and JSON path. Stable diagnostic families are:
 | `TWIN-PROTO-001` | The protobuf file or referenced declarations are invalid. |
 | `TWIN-GENERATION-001` | Language or declared generator outputs are invalid. |
 | `TWIN-OUTPUT-001` | A safe atomic destination cannot be created. |
+| `TWIN-URI-001` | A canonical URI is malformed or disagrees with its CQRS effect. |
+| `TWIN-CAPABILITY-001` | Capability resolution, risk or fail-closed gap policy is incomplete. |
+| `TWIN-PROCESS-001` | A process DAG, step execution policy, run state or human-task boundary is unsafe. |
 
 Exit status is `0` for valid/generation complete, `1` for an invalid contract,
 and `2` for usage, unsafe output state or internal I/O failure.
@@ -183,6 +258,11 @@ Exactly these files are emitted:
 - `proto/twin/v1/twin.proto` — the canonical protobuf contract;
 - `transport-map.json` — resolved operation and adapter metadata;
 - `conformance.json` — deterministic operation and invariant test cases.
+
+The transport map also contains URI resolution/process policy and definitions.
+Conformance output adds one case per process step plus capability-resolution,
+DAG, replay and actor/authority invariants. It never emits a URI runtime or
+connector implementation.
 
 Canonical JSON uses UTF-8, lexicographically sorted object keys, two-space
 indentation and one final LF. No clock, host path, random identifier or LLM
