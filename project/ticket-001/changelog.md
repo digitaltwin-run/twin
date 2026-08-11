@@ -47,3 +47,8 @@
   rejection through casing.
 - Expanded the conformance suite from 53 to 58 tests; host, networkless Docker,
   governance and authoritative pull-request CI pass on the hardened parser.
+- Merged protected PR #1 as `10b265c7f7c407f2720133e910ded52e7c3d38de`
+  after exact-head Validator approval and a green review-triggered governance
+  run; the merge commit passed post-merge CI and the ticket branch was deleted.
+- Closed the delivered ticket as `DONE / DONE`; unrelated follow-up work stays
+  explicit in the root roadmap.
