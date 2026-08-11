@@ -1,0 +1,22 @@
+{
+  "schema": "new-project.intent/v3",
+  "ticket": "ticket-002",
+  "summary": "Use accepted main base for ticket-branch push governance",
+  "workstream": "infrastructure",
+  "classification": {
+    "kind": "BUG",
+    "priority": "P2",
+    "origin": "regression"
+  },
+  "allowedPaths": [
+    ".github/workflows/ci.yml",
+    "project/ticket-002/**",
+    "TODO.md",
+    "project/TICKETS.md"
+  ],
+  "forbiddenPaths": ["project/ticket-*/user-*.md"],
+  "stacks": ["github-actions", "bash", "powershell"],
+  "dependsOn": [],
+  "conflictsWith": [],
+  "integrationTicket": null
+}
