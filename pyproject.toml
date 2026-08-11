@@ -1,0 +1,17 @@
+[build-system]
+requires = ["setuptools>=75"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "subactor-twin-standard"
+version = "0.1.0.dev0"
+description = "Language-neutral Digital Twin contract validator and generator"
+requires-python = ">=3.12"
+dependencies = []
+
+[project.scripts]
+twin-standard = "twin_standard:main"
+
+[tool.setuptools]
+py-modules = ["twin_standard"]
+package-dir = {"" = "src"}
