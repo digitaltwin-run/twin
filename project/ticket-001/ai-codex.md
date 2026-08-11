@@ -91,6 +91,19 @@ in the core while treating CLI, shell, REST and MCP as adapters.
 5. Re-run LLM-first intent audit, deterministic controls, host/Docker tests,
    governance and PR CI.
 
+## Validator advisory follow-up plan
+
+1. Preserve the dependency-free runtime while replacing regex-only protobuf
+   block extraction with quote-aware balanced-brace extraction.
+2. Validate message fields per lexical scope so nested messages and enums do
+   not hide required outer fields or create cross-scope duplicate numbers.
+3. Recognize protobuf identifiers independent of casing for secret-field
+   rejection while continuing to require canonical lower-snake field names.
+4. Add regressions for nested declarations, duplicate numbers, unbalanced
+   braces and non-canonical secret spellings.
+5. Re-run host, networkless Docker, governance, todo2code LLM-first and exact
+   head Validator review before merge.
+
 ## Unfinished work
 
 - Obtain independent trusted review for pull request #1; merge remains an
