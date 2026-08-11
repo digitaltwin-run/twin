@@ -49,6 +49,11 @@ stale-base failure beside a green PR run.
   because its scaffold lacked a bounded delivery contract. Publication stayed
   stopped while the accepted base, XS budgets, architecture, rollback, and
   validation evidence were added to `intent.json`.
+- Published exact head `4ed6e44d6c345915e10fe7a300c0a2a986a13243` and
+  observed GitHub Actions run `31546044854` complete successfully for both
+  Linux `test` and `windows-governance`. This is the direct branch-push proof
+  that an incremental ticket head no longer produces a false stale-base
+  failure.
 
 ## Blockers
 

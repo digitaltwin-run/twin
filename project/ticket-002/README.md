@@ -3,7 +3,7 @@
 - **ID**: ticket-002
 - **Owner**: unresolved:human
 - **Status**: IN_PROGRESS
-- **Workflow state**: VALIDATION
+- **Workflow state**: PUBLICATION
 - **Created**: 2026-08-11
 
 ## Goal and scope
@@ -28,8 +28,14 @@ package, or change application contracts.
   path and do not require a synthetic base/head comparison.
 - [x] AC-04: Host tests, workflow syntax checks, networkless Docker tests, and
   governance pass without adding a runtime dependency or implementation file.
-- [ ] AC-05: Protected push and pull-request checks pass on the published exact
+- [x] AC-05: Protected push and pull-request checks pass on the published exact
   head without a false `GOV-BASE-001` from a prior ticket-branch commit.
+
+  Evidence: the first branch-push workflow after the repair, GitHub Actions run
+  `31546044854` on exact head
+  `4ed6e44d6c345915e10fe7a300c0a2a986a13243`, completed successfully in both
+  required jobs: Linux `test` and `windows-governance`. Pull-request checks and
+  independent Validator approval remain publication gates for the final head.
 
 ## Risks and rollback
 

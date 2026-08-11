@@ -14,3 +14,6 @@
 - Added the required XS delivery contract after the first governance run
   failed closed on `GOV-DELIVERY-001`, then aligned its estimate with the
   policy's ten-minute XS ceiling; no publication occurred before repair.
+- Verified the repaired branch-push path on exact head `4ed6e44` in hosted run
+  `31546044854`: Linux and Windows required jobs both passed without a false
+  `GOV-BASE-001`.
