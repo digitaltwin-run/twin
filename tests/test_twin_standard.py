@@ -357,6 +357,51 @@ class TwinStandardTests(unittest.TestCase):
         )
         self.assertIn("TWIN-SECRET-001", self._codes(profile))
 
+    def test_nested_proto_message_does_not_hide_outer_fields_or_share_numbers(self):
+        profile = self._fixture(
+            proto_mutate=lambda text: text.replace(
+                "message ActorRef {",
+                "message ActorRef {\n  message Annotation {\n    string value = 1;\n  }",
+                1,
+            )
+        )
+        self.assertEqual([], twin_standard.validate_profile(profile))
+
+    def test_nested_proto_secret_field_fails_independently(self):
+        profile = self._fixture(
+            proto_mutate=lambda text: text.replace(
+                "message ActorRef {",
+                "message ActorRef {\n  message Credentials {\n    string Token = 1;\n  }",
+                1,
+            )
+        )
+        self.assertIn("TWIN-SECRET-001", self._codes(profile))
+
+    def test_camel_case_proto_secret_field_fails(self):
+        profile = self._fixture(
+            proto_mutate=lambda text: text.replace(
+                "message ActorRef {", "message ActorRef {\n  string credentialValue = 99;", 1
+            )
+        )
+        self.assertIn("TWIN-SECRET-001", self._codes(profile))
+
+    def test_unbalanced_proto_braces_fail(self):
+        profile = self._fixture(proto_mutate=lambda text: text + "\nmessage Broken {\n")
+        diagnostics = twin_standard.validate_profile(profile)
+        self.assertTrue(
+            any(item.code == "TWIN-PROTO-001" and "balanced" in item.message for item in diagnostics)
+        )
+
+    def test_proto_keywords_and_braces_inside_strings_are_not_declarations(self):
+        profile = self._fixture(
+            proto_mutate=lambda text: text.replace(
+                "package subactor.twin.v1;",
+                'package subactor.twin.v1;\noption java_package = "message Fake { string Token = 99;";',
+                1,
+            )
+        )
+        self.assertEqual([], twin_standard.validate_profile(profile))
+
     def test_duplicate_json_key_fails_closed(self):
         profile = self._fixture(raw_profile='{"schema":"twin.profile/v1","schema":"other"}\n')
         self.assertEqual({"TWIN-JSON-001"}, self._codes(profile))

@@ -865,8 +865,140 @@ def _validate_transports(
 
 
 def _strip_proto_comments(text: str) -> str:
-    text = re.sub(r"/\*.*?\*/", "", text, flags=re.DOTALL)
-    return re.sub(r"//.*", "", text)
+    result: list[str] = []
+    index = 0
+    quoted = False
+    while index < len(text):
+        char = text[index]
+        next_char = text[index + 1] if index + 1 < len(text) else ""
+        if quoted:
+            result.append(char)
+            if char == "\\" and index + 1 < len(text):
+                result.append(text[index + 1])
+                index += 2
+                continue
+            if char == '"':
+                quoted = False
+            index += 1
+            continue
+        if char == '"':
+            quoted = True
+            result.append(char)
+            index += 1
+            continue
+        if char == "/" and next_char == "/":
+            result.extend((" ", " "))
+            index += 2
+            while index < len(text) and text[index] != "\n":
+                result.append(" ")
+                index += 1
+            continue
+        if char == "/" and next_char == "*":
+            result.extend((" ", " "))
+            index += 2
+            while index < len(text):
+                if index + 1 < len(text) and text[index : index + 2] == "*/":
+                    result.extend((" ", " "))
+                    index += 2
+                    break
+                result.append("\n" if text[index] == "\n" else " ")
+                index += 1
+            continue
+        result.append(char)
+        index += 1
+    return "".join(result)
+
+
+def _mask_proto_strings(text: str) -> str:
+    result = list(text)
+    index = 0
+    quoted = False
+    while index < len(text):
+        char = text[index]
+        if quoted:
+            if char != "\n":
+                result[index] = " "
+            if char == "\\" and index + 1 < len(text):
+                index += 1
+                if text[index] != "\n":
+                    result[index] = " "
+            elif char == '"':
+                quoted = False
+            index += 1
+            continue
+        if char == '"':
+            quoted = True
+            result[index] = " "
+        index += 1
+    return "".join(result)
+
+
+def _proto_brace_depths(structure: str) -> tuple[list[int], bool]:
+    depths = [0] * (len(structure) + 1)
+    depth = 0
+    valid = True
+    for index, char in enumerate(structure):
+        depths[index] = depth
+        if char == "{":
+            depth += 1
+        elif char == "}":
+            depth -= 1
+            if depth < 0:
+                valid = False
+    depths[len(structure)] = depth
+    return depths, valid and depth == 0
+
+
+def _matching_proto_brace(structure: str, opening: int) -> int | None:
+    depth = 0
+    for index in range(opening, len(structure)):
+        if structure[index] == "{":
+            depth += 1
+        elif structure[index] == "}":
+            depth -= 1
+            if depth == 0:
+                return index
+    return None
+
+
+def _proto_blocks(text: str, keyword: str) -> list[tuple[str, str, int]]:
+    structure = _mask_proto_strings(text)
+    depths, _ = _proto_brace_depths(structure)
+    pattern = re.compile(rf"\b{re.escape(keyword)}\s+([A-Za-z_]\w*)\s*\{{")
+    blocks: list[tuple[str, str, int]] = []
+    for match in pattern.finditer(structure):
+        opening = match.end() - 1
+        closing = _matching_proto_brace(structure, opening)
+        if closing is not None:
+            blocks.append((match.group(1), text[opening + 1 : closing], depths[match.start()]))
+    return blocks
+
+
+def _message_scope_body(body: str) -> str:
+    structure = _mask_proto_strings(body)
+    pattern = re.compile(r"\b(?:message|enum)\s+[A-Za-z_]\w*\s*\{")
+    masked = list(body)
+    for match in pattern.finditer(structure):
+        closing = _matching_proto_brace(structure, match.end() - 1)
+        if closing is None:
+            continue
+        for index in range(match.start(), closing + 1):
+            if masked[index] != "\n":
+                masked[index] = " "
+    return "".join(masked)
+
+
+_PROTO_FIELD_PATTERN = re.compile(
+    r"(?:\b(?:optional|repeated)\s+)?"
+    r"(?:map\s*<\s*[A-Za-z_]\w*(?:\.[A-Za-z_]\w*)*\s*,\s*"
+    r"[A-Za-z_]\w*(?:\.[A-Za-z_]\w*)*\s*>|\.?[A-Za-z_]\w*(?:\.[A-Za-z_]\w*)*)"
+    r"\s+([A-Za-z_]\w*)\s*=\s*(\d+)\b"
+)
+
+
+def _proto_fields(body: str) -> list[tuple[str, str]]:
+    scope = _mask_proto_strings(_message_scope_body(body))
+    return [match.groups() for match in _PROTO_FIELD_PATTERN.finditer(scope)]
 
 
 def _profile_root(profile_path: Path) -> Path:
@@ -904,8 +1036,16 @@ def _validate_proto(
     package_match = re.search(r"\bpackage\s+([A-Za-z_][\w.]*)\s*;", clean)
     if not package_match or package_match.group(1) != package:
         _add(diagnostics, "TWIN-PROTO-001", "$.protobuf.package", "does not match the protobuf package")
-    messages = set(re.findall(r"\bmessage\s+([A-Za-z_]\w*)\s*\{", clean))
-    services = set(re.findall(r"\bservice\s+([A-Za-z_]\w*)\s*\{", clean))
+    structure = _mask_proto_strings(clean)
+    _, braces_balanced = _proto_brace_depths(structure)
+    if not braces_balanced:
+        _add(diagnostics, "TWIN-PROTO-001", "$.protobuf.path", "protobuf braces must be balanced")
+    message_blocks = _proto_blocks(clean, "message")
+    service_blocks = _proto_blocks(clean, "service")
+    top_level_message_blocks = [(name, body) for name, body, depth in message_blocks if depth == 0]
+    top_level_service_blocks = [(name, body) for name, body, depth in service_blocks if depth == 0]
+    messages = {name for name, _ in top_level_message_blocks}
+    services = {name for name, _ in top_level_service_blocks}
     for missing in sorted(REQUIRED_MESSAGES - messages):
         _add(diagnostics, "TWIN-PROTO-001", "$.protobuf.path", f"missing required message {missing}")
     for missing in sorted(REQUIRED_SERVICES - services):
@@ -929,36 +1069,26 @@ def _validate_proto(
     for missing in sorted(referenced - messages):
         _add(diagnostics, "TWIN-PROTO-001", "$.operations", f"referenced protobuf message {missing} does not exist")
 
-    bodies = {
-        name: body
-        for name, body in re.findall(r"\bmessage\s+([A-Za-z_]\w*)\s*\{([^{}]*)\}", clean, flags=re.DOTALL)
-    }
-    service_bodies = {
-        name: body
-        for name, body in re.findall(r"\bservice\s+([A-Za-z_]\w*)\s*\{([^{}]*)\}", clean, flags=re.DOTALL)
-    }
-    for name, body in bodies.items():
-        numbers = re.findall(r"=\s*(\d+)\s*;", body)
+    bodies = dict(top_level_message_blocks)
+    service_bodies = dict(top_level_service_blocks)
+    forbidden_secret_fields = {"secret", "password", "token", "credentialvalue", "secretvalue"}
+    for name, body, _ in message_blocks:
+        fields = _proto_fields(body)
+        numbers = [number for _, number in fields]
         duplicates = sorted(number for number, count in Counter(numbers).items() if count > 1)
         for number in duplicates:
             _add(diagnostics, "TWIN-PROTO-001", "$.protobuf.path", f"message {name} repeats field number {number}")
-        field_names = re.findall(r"(?:\brepeated\s+)?[A-Za-z_][\w.<>]*\s+([a-z][a-z0-9_]*)\s*=", body)
-        for field_name in field_names:
-            if field_name in {"secret", "password", "token", "credential_value", "secret_value"}:
+        for field_name, _ in fields:
+            normalized_field_name = re.sub(r"[^a-z0-9]", "", field_name.lower())
+            if normalized_field_name in forbidden_secret_fields:
                 _add(
                     diagnostics,
                     "TWIN-SECRET-001",
                     "$.protobuf.path",
                     f"message {name} models forbidden secret field {field_name}",
                 )
-    event_body = bodies.get("EventEnvelope", "")
     def message_fields(name: str) -> set[str]:
-        return set(
-            re.findall(
-                r"(?:\brepeated\s+)?[A-Za-z_][\w.<>]*\s+([a-z][a-z0-9_]*)\s*=",
-                bodies.get(name, ""),
-            )
-        )
+        return {field_name for field_name, _ in _proto_fields(bodies.get(name, ""))}
 
     event_fields = message_fields("EventEnvelope")
     for missing in sorted(REQUIRED_EVENT_METADATA - event_fields):
