@@ -35,3 +35,6 @@
 - Expanded the conformance suite from 30 to 53 tests. Host and networkless
   Docker runs pass; todo2code deterministic review proposes no code change,
   while required-LLM remains correctly unavailable without fallback.
+- Recorded a separate follow-up for branch-push CI: the authoritative
+  pull-request run passes against `main`, while an incremental push run can use
+  the prior branch head and report a false stale-base failure.

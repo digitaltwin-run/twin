@@ -36,3 +36,5 @@
 2026-08-11T19:47:20Z REVIEW_URI_PROCESS fixes=unknown_dependency_not_cycle,coexisting_process_versions,protobuf_step_safety_fields product_intent_errors=0
 2026-08-11T19:47:20Z VALIDATION_URI_PROCESS docker_networkless=PASS count=53 first_governance=FAIL reason=todo2code_local_cache cache_removed=true final_governance=PASS errors=0 warnings=0
 2026-08-11T19:47:37Z IMPLEMENTATION_URI_PROCESS commit=dfaf98d7498dad43a75d5601751685fc462217c5 implementation_files=5 runtime_dependencies=0
+2026-08-11T19:49:34Z CI_URI_PROCESS event=pull_request head=48e6fa564e2b80646e5d140ffb434918188e0cba test=PASS docker_networkless=PASS windows_governance=PASS
+2026-08-11T19:49:34Z CI_PUSH_BASE_GAP event=push head=48e6fa564e2b80646e5d140ffb434918188e0cba status=FAIL code=GOV-BASE-001 event_base=4f7267058f7ce38199e3bcf8d1f1526f980f78d2 disposition=FOLLOWUP_NO_PRODUCT_FAILURE

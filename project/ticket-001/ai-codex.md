@@ -93,8 +93,8 @@ in the core while treating CLI, shell, REST and MCP as adapters.
 
 ## Unfinished work
 
-- Publish the revision to pull request #1 and obtain independent trusted
-  review; merge remains an external authorization gate.
+- Obtain independent trusted review for pull request #1; merge remains an
+  external authorization gate.
 
 ## Blockers
 
