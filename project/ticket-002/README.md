@@ -3,7 +3,7 @@
 - **ID**: ticket-002
 - **Owner**: unresolved:human
 - **Status**: IN_PROGRESS
-- **Workflow state**: EDIT
+- **Workflow state**: VALIDATION
 - **Created**: 2026-08-11
 
 ## Goal and scope
@@ -20,13 +20,13 @@ package, or change application contracts.
 
 ## Acceptance criteria
 
-- [ ] AC-01: On a non-default `push`, both Linux and Windows jobs fetch
+- [x] AC-01: On a non-default `push`, both Linux and Windows jobs fetch
   `origin/main` and derive `base` with `git merge-base origin/main EVENT_HEAD`.
-- [ ] AC-02: On `pull_request`, both jobs continue to use the exact
+- [x] AC-02: On `pull_request`, both jobs continue to use the exact
   `github.event.pull_request.base.sha` and head SHA supplied by GitHub.
-- [ ] AC-03: Default-branch pushes keep the existing changed-file governance
+- [x] AC-03: Default-branch pushes keep the existing changed-file governance
   path and do not require a synthetic base/head comparison.
-- [ ] AC-04: Host tests, workflow syntax checks, networkless Docker tests, and
+- [x] AC-04: Host tests, workflow syntax checks, networkless Docker tests, and
   governance pass without adding a runtime dependency or implementation file.
 - [ ] AC-05: Protected push and pull-request checks pass on the published exact
   head without a false `GOV-BASE-001` from a prior ticket-branch commit.

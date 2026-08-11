@@ -41,8 +41,10 @@ jobs:
       - name: Validate contracts and tests
         shell: bash
         env:
+          DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
           EVENT_BASE: ${{ github.event.pull_request.base.sha || github.event.before }}
           EVENT_HEAD: ${{ github.event.pull_request.head.sha || github.sha }}
+          EVENT_NAME: ${{ github.event_name }}
         run: |
           set -euo pipefail
           python3 -m json.tool .governance/manifest.json >/dev/null
@@ -53,10 +55,15 @@ jobs:
           if [[ "${{ github.ref_name }}" == "${{ github.event.repository.default_branch }}" ]]; then
             ./project/governance-check.sh --actor ci --changed-file project/TICKETS.md
           else
-            base="$EVENT_BASE"
-            if [[ ! "$base" =~ ^[0-9a-f]{40}$ || "$base" == 0000000000000000000000000000000000000000 ]]; then
-              git fetch --no-tags origin "refs/heads/${{ github.event.repository.default_branch }}:refs/remotes/origin/${{ github.event.repository.default_branch }}"
-              base="$(git merge-base "origin/${{ github.event.repository.default_branch }}" "$EVENT_HEAD")"
+            if [[ "$EVENT_NAME" == "pull_request" || "$EVENT_NAME" == "pull_request_review" ]]; then
+              base="$EVENT_BASE"
+              if [[ ! "$base" =~ ^[0-9a-f]{40}$ || "$base" == 0000000000000000000000000000000000000000 ]]; then
+                echo "Pull-request governance requires an exact event base SHA." >&2
+                exit 1
+              fi
+            else
+              git fetch --no-tags origin "refs/heads/${DEFAULT_BRANCH}:refs/remotes/origin/${DEFAULT_BRANCH}"
+              base="$(git merge-base "origin/${DEFAULT_BRANCH}" "$EVENT_HEAD")"
             fi
             ./project/governance-check.sh --actor ci --base "$base" --head "$EVENT_HEAD"
           fi
@@ -85,18 +92,25 @@ jobs:
       - name: Run Windows governance
         shell: pwsh
         env:
+          DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
           EVENT_BASE: ${{ github.event.pull_request.base.sha || github.event.before }}
           EVENT_HEAD: ${{ github.event.pull_request.head.sha || github.sha }}
+          EVENT_NAME: ${{ github.event_name }}
         run: |
           $ErrorActionPreference = 'Stop'
           if ('${{ github.ref_name }}' -eq '${{ github.event.repository.default_branch }}') {
             ./project.bat --actor ci --changed-file project/TICKETS.md
           } else {
-            $base = $env:EVENT_BASE
-            if ($base -notmatch '^[0-9a-f]{40}$' -or $base -eq ('0' * 40)) {
-              git fetch --no-tags origin "refs/heads/${{ github.event.repository.default_branch }}:refs/remotes/origin/${{ github.event.repository.default_branch }}"
+            if ($env:EVENT_NAME -eq 'pull_request' -or $env:EVENT_NAME -eq 'pull_request_review') {
+              $base = $env:EVENT_BASE
+              if ($base -notmatch '^[0-9a-f]{40}$' -or $base -eq ('0' * 40)) {
+                throw 'Pull-request governance requires an exact event base SHA.'
+              }
+            } else {
+              git fetch --no-tags origin "refs/heads/$($env:DEFAULT_BRANCH):refs/remotes/origin/$($env:DEFAULT_BRANCH)"
               if ($LASTEXITCODE -ne 0) { throw 'default branch fetch failed' }
-              $base = (git merge-base 'origin/${{ github.event.repository.default_branch }}' $env:EVENT_HEAD).Trim()
+              $base = (git merge-base "origin/$($env:DEFAULT_BRANCH)" $env:EVENT_HEAD).Trim()
+              if ($LASTEXITCODE -ne 0) { throw 'default branch merge-base resolution failed' }
             }
             ./project.bat --actor ci --base $base --head $env:EVENT_HEAD
           }

@@ -38,6 +38,13 @@ stale-base failure beside a green PR run.
 - Classified the observed false `GOV-BASE-001` as a functional regression in
   the infrastructure workstream and limited implementation to one workflow
   file.
+- Preserved exact event base/head SHAs for pull-request and review events. For
+  other non-default-branch events, both Bash and PowerShell now fetch the
+  configured default branch and derive the common merge base with the exact
+  event head; the prior branch commit is never treated as the accepted base.
+- Passed 58 host tests, Python compilation, JSON/YAML parsing, structural
+  Linux/Windows workflow assertions, and 58 tests in the pinned networkless
+  container before publication.
 
 ## Blockers
 
