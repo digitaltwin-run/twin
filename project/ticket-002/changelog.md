@@ -12,4 +12,5 @@
 - Passed 58 host and networkless-container tests plus workflow syntax and
   structural parity checks.
 - Added the required XS delivery contract after the first governance run
-  failed closed on `GOV-DELIVERY-001`; no publication occurred before repair.
+  failed closed on `GOV-DELIVERY-001`, then aligned its estimate with the
+  policy's ten-minute XS ceiling; no publication occurred before repair.

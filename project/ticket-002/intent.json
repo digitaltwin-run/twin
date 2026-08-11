@@ -30,7 +30,7 @@
       "No public interface, dependency, persistent data, or secret change"
     ],
     "complexity": "XS",
-    "estimatedMinutes": 20,
+    "estimatedMinutes": 10,
     "budgets": {
       "maxImplementationFiles": 1,
       "maxAffectedComponents": 2,
