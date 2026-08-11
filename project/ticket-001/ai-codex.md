@@ -123,14 +123,16 @@ in the core while treating CLI, shell, REST and MCP as adapters.
 
 ## Unfinished work
 
-- Obtain independent trusted review for pull request #1; merge remains an
-  external authorization gate.
+- None for ticket-001. The incremental branch-push CI correction and future
+  adapters remain separately declared `Later` work and are not hidden inside
+  this completed scope.
 
 ## Blockers
 
 - None inside the recorded intent; proceed without a second confirmation.
 - Semantic LLM review is externally unavailable because the provider weekly
-  limit is exhausted; this was kept fail-closed and was not relabelled as a
-  successful LLM result.
+  limit is exhausted for local todo2code; this was kept fail-closed and was not
+  relabelled as a successful todo2code LLM result. The repository-scoped
+  Validator completed its independent exact-head GLM review before merge.
 - New authority remains required for destructive action, secret access, new
   external coordination, material objective expansion and trusted merge.

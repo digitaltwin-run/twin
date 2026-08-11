@@ -2,7 +2,7 @@
 
 ## Active
 
-- [ ] Define Twin Standard v1 and generate a portable all-traits reference
+- [x] Define Twin Standard v1 and generate a portable all-traits reference
   bundle with protobuf-backed CLI, shell, REST and MCP mappings over CQRS,
   Event Sourcing, canonical URI capabilities and replay-safe URI Processes.
 
