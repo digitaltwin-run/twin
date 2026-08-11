@@ -1,0 +1,408 @@
+syntax = "proto3";
+
+package subactor.twin.v1;
+
+import "google/protobuf/any.proto";
+import "google/protobuf/timestamp.proto";
+
+message ActorRef {
+  string subject = 1;
+  string tenant = 2;
+}
+
+message AuthorityRef {
+  string decision_id = 1;
+  string policy_version = 2;
+}
+
+message EvidenceRef {
+  string evidence_id = 1;
+  string aggregate_id = 2;
+  string target_uri = 3;
+  string media_type = 4;
+  bytes digest_sha256 = 5;
+}
+
+message CommandEnvelope {
+  string operation_id = 1;
+  string command_id = 2;
+  string aggregate_id = 3;
+  string aggregate_type = 4;
+  uint64 expected_version = 5;
+  string idempotency_key = 6;
+  ActorRef actor_ref = 7;
+  AuthorityRef authority_ref = 8;
+  string correlation_id = 9;
+  string causation_id = 10;
+  google.protobuf.Timestamp occurred_at = 11;
+  google.protobuf.Any payload = 12;
+}
+
+message EventEnvelope {
+  string event_id = 1;
+  string aggregate_id = 2;
+  string aggregate_type = 3;
+  uint64 aggregate_version = 4;
+  uint64 sequence = 5;
+  string event_type = 6;
+  uint32 schema_version = 7;
+  ActorRef actor_ref = 8;
+  AuthorityRef authority_ref = 9;
+  string correlation_id = 10;
+  string causation_id = 11;
+  string idempotency_key = 12;
+  google.protobuf.Timestamp occurred_at = 13;
+  repeated EvidenceRef evidence = 14;
+  google.protobuf.Any payload = 15;
+}
+
+message QueryEnvelope {
+  string operation_id = 1;
+  string query_id = 2;
+  string aggregate_id = 3;
+  ActorRef actor_ref = 4;
+  string correlation_id = 5;
+  google.protobuf.Any parameters = 6;
+}
+
+message CommandReceipt {
+  string receipt_id = 1;
+  string command_id = 2;
+  string aggregate_id = 3;
+  AuthorityRef authority_ref = 4;
+  uint64 aggregate_version = 5;
+  repeated string event_ids = 6;
+  string status = 7;
+}
+
+message QueryResult {
+  string query_id = 1;
+  string projection = 2;
+  uint64 source_sequence = 3;
+  google.protobuf.Timestamp projected_at = 4;
+  repeated EvidenceRef evidence = 5;
+  google.protobuf.Any payload = 6;
+}
+
+enum ObservationStatus {
+  OBSERVATION_STATUS_UNSPECIFIED = 0;
+  OBSERVATION_STATUS_OBSERVED = 1;
+  OBSERVATION_STATUS_UNEVALUABLE = 2;
+  OBSERVATION_STATUS_EXPIRED = 3;
+}
+
+message Observation {
+  string observation_id = 1;
+  string aggregate_id = 2;
+  string target_uri = 3;
+  string metric = 4;
+  ObservationStatus status = 5;
+  google.protobuf.Any value = 6;
+  google.protobuf.Timestamp observed_at = 7;
+  google.protobuf.Timestamp expires_at = 8;
+  repeated EvidenceRef evidence = 9;
+}
+
+message OutboxMessage {
+  string message_id = 1;
+  string aggregate_id = 2;
+  string operation = 3;
+  string target_uri = 4;
+  string credential_ref = 5;
+  google.protobuf.Any payload = 6;
+  repeated string source_event_ids = 7;
+}
+
+enum UriEffect {
+  URI_EFFECT_UNSPECIFIED = 0;
+  URI_EFFECT_QUERY = 1;
+  URI_EFFECT_COMMAND = 2;
+}
+
+message UriRoute {
+  string uri = 1;
+  string scheme = 2;
+  string uri_authority = 3;
+  repeated string resource_path = 4;
+  UriEffect effect = 5;
+  string action = 6;
+}
+
+message UriProvider {
+  string connector_ref = 1;
+  UriRoute route = 2;
+  repeated string preconditions = 3;
+}
+
+message UriCapability {
+  string capability_id = 1;
+  string twin_family = 2;
+  UriEffect effect = 3;
+  string transport = 4;
+  string status = 5;
+  string risk = 6;
+  repeated string credential_refs = 7;
+  repeated string required_capability_ids = 8;
+  repeated string required_feature_flags = 9;
+  repeated UriProvider providers = 10;
+}
+
+enum ResolutionGapKind {
+  RESOLUTION_GAP_KIND_UNSPECIFIED = 0;
+  RESOLUTION_GAP_KIND_CONNECTOR_UNAVAILABLE = 1;
+  RESOLUTION_GAP_KIND_PROVIDER_NOT_IMPLEMENTED = 2;
+  RESOLUTION_GAP_KIND_CREDENTIAL_MISSING = 3;
+  RESOLUTION_GAP_KIND_CAPABILITY_MISSING = 4;
+  RESOLUTION_GAP_KIND_PRECONDITION_FAILED = 5;
+  RESOLUTION_GAP_KIND_AUTHORITY_MISSING = 6;
+}
+
+message ResolutionGap {
+  ResolutionGapKind kind = 1;
+  string capability_id = 2;
+  string detail = 3;
+  string execution_policy = 4;
+}
+
+message CapabilityMap {
+  string map_hash = 1;
+  string baseline_version = 2;
+  google.protobuf.Timestamp observed_at = 3;
+  repeated UriCapability capabilities = 4;
+  repeated EvidenceRef evidence = 5;
+}
+
+enum ProcessFailurePolicy {
+  PROCESS_FAILURE_POLICY_UNSPECIFIED = 0;
+  PROCESS_FAILURE_POLICY_STOP = 1;
+  PROCESS_FAILURE_POLICY_CONTINUE = 2;
+  PROCESS_FAILURE_POLICY_COMPENSATE = 3;
+}
+
+message RetryPolicy {
+  uint32 max_attempts = 1;
+  uint64 backoff_ms = 2;
+}
+
+message UriProcessStep {
+  string step_id = 1;
+  string operation_id = 2;
+  UriRoute route = 3;
+  repeated string depends_on = 4;
+  uint64 timeout_ms = 5;
+  RetryPolicy retry = 6;
+  ProcessFailurePolicy failure_policy = 7;
+  bool reversible = 8;
+  string inverse_uri = 9;
+  string authority_scope = 10;
+  string capability_id = 11;
+  string provider_ref = 12;
+  bool idempotency_required = 13;
+  bool receipt_required = 14;
+}
+
+message UriProcessDefinition {
+  string process_id = 1;
+  string process_uri = 2;
+  uint32 version = 3;
+  string intent = 4;
+  repeated UriProcessStep steps = 5;
+  bool immutable = 6;
+}
+
+message UriProcessPlan {
+  string plan_id = 1;
+  string process_id = 2;
+  uint32 process_version = 3;
+  string capability_map_hash = 4;
+  bool resolved = 5;
+  repeated UriProcessStep steps = 6;
+  repeated ResolutionGap gaps = 7;
+  google.protobuf.Timestamp resolved_at = 8;
+}
+
+enum UriProcessRunState {
+  URI_PROCESS_RUN_STATE_UNSPECIFIED = 0;
+  URI_PROCESS_RUN_STATE_PLANNED = 1;
+  URI_PROCESS_RUN_STATE_WAITING = 2;
+  URI_PROCESS_RUN_STATE_READY = 3;
+  URI_PROCESS_RUN_STATE_RUNNING = 4;
+  URI_PROCESS_RUN_STATE_SUCCEEDED = 5;
+  URI_PROCESS_RUN_STATE_FAILED = 6;
+  URI_PROCESS_RUN_STATE_CANCELLED = 7;
+  URI_PROCESS_RUN_STATE_COMPENSATING = 8;
+  URI_PROCESS_RUN_STATE_COMPENSATED = 9;
+}
+
+message UriStepReceipt {
+  string receipt_id = 1;
+  string run_id = 2;
+  string step_id = 3;
+  string operation_uri = 4;
+  uint32 attempt = 5;
+  string idempotency_key = 6;
+  string status = 7;
+  repeated string event_ids = 8;
+  repeated EvidenceRef evidence = 9;
+  bytes output_digest_sha256 = 10;
+  google.protobuf.Timestamp started_at = 11;
+  google.protobuf.Timestamp finished_at = 12;
+  string error_ref = 13;
+}
+
+enum HumanTaskState {
+  HUMAN_TASK_STATE_UNSPECIFIED = 0;
+  HUMAN_TASK_STATE_PENDING = 1;
+  HUMAN_TASK_STATE_RESOLVED = 2;
+  HUMAN_TASK_STATE_DECLINED = 3;
+  HUMAN_TASK_STATE_CANCELLED = 4;
+  HUMAN_TASK_STATE_EXPIRED = 5;
+}
+
+message HumanTask {
+  string task_id = 1;
+  string run_id = 2;
+  string step_id = 3;
+  HumanTaskState state = 4;
+  ActorRef requested_actor_ref = 5;
+  string required_authority_scope = 6;
+  AuthorityRef decision_ref = 7;
+  repeated EvidenceRef evidence = 8;
+}
+
+message UriProcessRun {
+  string run_id = 1;
+  string plan_id = 2;
+  string capability_map_hash = 3;
+  UriProcessRunState state = 4;
+  repeated string current_step_ids = 5;
+  ActorRef actor_ref = 6;
+  AuthorityRef authority_ref = 7;
+  string correlation_id = 8;
+  repeated UriStepReceipt step_receipts = 9;
+  repeated HumanTask human_tasks = 10;
+  repeated ResolutionGap gaps = 11;
+  google.protobuf.Timestamp started_at = 12;
+  google.protobuf.Timestamp updated_at = 13;
+  google.protobuf.Timestamp finished_at = 14;
+}
+
+message ReconcileCommand { CommandEnvelope envelope = 1; }
+message MirrorRefreshCommand { CommandEnvelope envelope = 1; }
+message InvariantEvaluationCommand { CommandEnvelope envelope = 1; }
+message SimulationCommand { CommandEnvelope envelope = 1; }
+message VerificationCommand { CommandEnvelope envelope = 1; }
+message NotificationCommand { CommandEnvelope envelope = 1; }
+message OutboxAcknowledgeCommand { CommandEnvelope envelope = 1; }
+message PublishObservationCommand {
+  CommandEnvelope envelope = 1;
+  Observation observation = 2;
+}
+
+message GetTwinQuery { QueryEnvelope envelope = 1; }
+message GetHistoryQuery { QueryEnvelope envelope = 1; }
+message GetHealthQuery { QueryEnvelope envelope = 1; }
+
+message StartUriProcessCommand {
+  CommandEnvelope envelope = 1;
+  UriProcessPlan plan = 2;
+}
+message AdvanceUriProcessCommand {
+  CommandEnvelope envelope = 1;
+  UriStepReceipt step_receipt = 2;
+}
+message CancelUriProcessCommand {
+  CommandEnvelope envelope = 1;
+  string reason = 2;
+}
+
+message ResolveUriProcessQuery {
+  QueryEnvelope envelope = 1;
+  UriProcessDefinition definition = 2;
+}
+message GetCapabilityMapQuery { QueryEnvelope envelope = 1; }
+message GetUriProcessRunQuery { QueryEnvelope envelope = 1; }
+
+message TwinView { QueryResult result = 1; }
+message HistoryView { QueryResult result = 1; }
+message HealthView { QueryResult result = 1; }
+
+message ReconciliationRequested { string target_uri = 1; }
+message MirrorRefreshRequested { string target_uri = 1; }
+message InvariantEvaluated { string invariant_id = 1; bool satisfied = 2; }
+message SimulationRecorded { string scenario_id = 1; }
+message VerificationRecorded { string check_id = 1; bool eligible = 2; }
+message NotificationEnqueued { OutboxMessage message = 1; }
+message OutboxAcknowledged { string message_id = 1; string outcome = 2; }
+message ObservationPublished { Observation observation = 1; }
+message UriProcessStarted { string run_id = 1; string plan_id = 2; }
+message UriProcessStepCompleted { UriStepReceipt step_receipt = 1; }
+message UriProcessCancelled { string run_id = 1; string reason = 2; }
+
+message AppendEventsRequest {
+  string aggregate_id = 1;
+  uint64 expected_version = 2;
+  repeated EventEnvelope events = 3;
+}
+
+message AppendEventsResponse {
+  uint64 aggregate_version = 1;
+  repeated string event_ids = 2;
+}
+
+message ReadStreamRequest {
+  string aggregate_id = 1;
+  uint64 after_sequence = 2;
+  uint32 limit = 3;
+}
+
+message ReadStreamResponse { repeated EventEnvelope events = 1; }
+
+message RebuildProjectionRequest {
+  string projection = 1;
+  uint64 through_sequence = 2;
+  bool observe_only = 3;
+}
+
+message RebuildProjectionResponse {
+  string projection = 1;
+  uint64 source_sequence = 2;
+}
+
+service TwinCommandService {
+  rpc Reconcile(ReconcileCommand) returns (CommandReceipt);
+  rpc RefreshMirror(MirrorRefreshCommand) returns (CommandReceipt);
+  rpc EvaluateInvariant(InvariantEvaluationCommand) returns (CommandReceipt);
+  rpc Simulate(SimulationCommand) returns (CommandReceipt);
+  rpc Verify(VerificationCommand) returns (CommandReceipt);
+  rpc EnqueueNotification(NotificationCommand) returns (CommandReceipt);
+  rpc AcknowledgeOutbox(OutboxAcknowledgeCommand) returns (CommandReceipt);
+  rpc PublishObservation(PublishObservationCommand) returns (CommandReceipt);
+}
+
+service TwinQueryService {
+  rpc GetTwin(GetTwinQuery) returns (TwinView);
+  rpc GetHistory(GetHistoryQuery) returns (HistoryView);
+  rpc GetHealth(GetHealthQuery) returns (HealthView);
+}
+
+service TwinEventStore {
+  rpc Append(AppendEventsRequest) returns (AppendEventsResponse);
+  rpc Read(ReadStreamRequest) returns (ReadStreamResponse);
+}
+
+service TwinProjectionService {
+  rpc Rebuild(RebuildProjectionRequest) returns (RebuildProjectionResponse);
+}
+
+service TwinUriProcessCommandService {
+  rpc Start(StartUriProcessCommand) returns (CommandReceipt);
+  rpc Advance(AdvanceUriProcessCommand) returns (CommandReceipt);
+  rpc Cancel(CancelUriProcessCommand) returns (CommandReceipt);
+}
+
+service TwinUriProcessQueryService {
+  rpc Resolve(ResolveUriProcessQuery) returns (UriProcessPlan);
+  rpc GetCapabilityMap(GetCapabilityMapQuery) returns (CapabilityMap);
+  rpc GetRun(GetUriProcessRunQuery) returns (UriProcessRun);
+}

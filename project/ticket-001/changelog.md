@@ -10,3 +10,40 @@
   dependency-free validator/generator and conformance tests.
 - Adopted `new-project` 0.14.1 from exact revision
   `3549d21a5a31fea87b2dd4da37d8e8bd793f20f6`.
+- Published the bootstrap privately and accepted base
+  `99138aa895774c7675942188393404b3687677d7` for the five-file delivery.
+- Added the normative Twin Standard v1, canonical protobuf model and reference
+  profile with all eight standard traits and four transport mappings.
+- Added a dependency-free deterministic validator/generator with stable
+  diagnostics, non-overwrite output safety and portable conformance bundles.
+- Added 30 positive and negative tests for CQRS/ES, replay, evidence, secrets,
+  connectors, transport safety, protobuf references and deterministic output.
+- Recorded todo2code required-LLM as `LLM_UNAVAILABLE` after a fail-closed
+  provider-limit response; the separately labelled deterministic control
+  proposed no code change.
+- Clarified that the ticket introduces contracts but moves no persistent data
+  or component ownership.
+- Accepted a pre-release scope revision to standardize canonical URI
+  capabilities, capability discovery/resolution and multi-step URI Processes
+  based on the latest `digitaltwin-run` service, persona and scenario twins.
+- Added canonical URI ownership, reviewed provider bindings, typed fail-closed
+  resolution gaps and capability-map hash pinning to the profile, protobuf and
+  generated conformance contract.
+- Added immutable coexisting process revisions, acyclic dependencies, bounded
+  timeout/retry and failure policy, per-step idempotency/receipts, explicit
+  compensation, human-task states and replay-safe authority boundaries.
+- Expanded the conformance suite from 30 to 53 tests. Host and networkless
+  Docker runs pass; todo2code deterministic review proposes no code change,
+  while required-LLM remains correctly unavailable without fallback.
+- Recorded a separate follow-up for branch-push CI: the authoritative
+  pull-request run passes against `main`, while an incremental push run can use
+  the prior branch head and report a false stale-base failure.
+- Triaged a 13-chunk Validator LLM review before merge and accepted its
+  protobuf parser finding while rejecting syntax, circular-governance and
+  redacted-input false positives with direct evidence.
+- Replaced flat regex protobuf body matching with dependency-free,
+  quote-aware balanced-block extraction. Nested declarations cannot hide
+  required fields, cross-contaminate field numbers or evade secret-field
+  rejection through casing.
+- Expanded the conformance suite from 53 to 58 tests; host, networkless Docker,
+  governance and authoritative pull-request CI pass on the hardened parser.
