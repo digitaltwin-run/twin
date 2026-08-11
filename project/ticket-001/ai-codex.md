@@ -39,7 +39,9 @@ in the core while treating CLI, shell, REST and MCP as adapters.
   ticket branch.
 - Implemented the normative standard, canonical proto3 model, all-traits
   profile, deterministic validator/generator and 30-test conformance suite in
-  the five declared implementation files.
+  the five declared implementation files. Evidence is commit
+  `02817aa9722c0f5fba2aef98af7379a37db20de2`, including
+  `validate_profile`, `generate_bundle` and `TwinStandardTests`.
 - Ran todo2code LLM-first at commit `732e5416b5797cbeabc8b2d678ba0b86971782ec`.
   Required-LLM failed closed because the provider's weekly limit was exhausted;
   no deterministic fallback was presented as an LLM result.
@@ -47,6 +49,10 @@ in the core while treating CLI, shell, REST and MCP as adapters.
   graph fingerprint `5e1b67a72f34122ad8e30457f8c60b6e652f7c2fc191f8c48fe4bce30d48dcb8`,
   generated no code-change proposal and exposed line-wrapped acceptance text,
   which was rewritten as action/evidence statements.
+- Re-ran the deterministic control after the implementation commit. It emitted
+  no code-change plan; remaining review items are ticket-header/risk prose,
+  future publication work and the already committed bootstrap changelog rather
+  than a contradictory product intention.
 
 ## Unfinished work
 

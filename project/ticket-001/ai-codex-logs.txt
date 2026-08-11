@@ -18,3 +18,5 @@
 2026-08-11T19:20:10Z TODO2CODE_REVIEW actionable=acceptance_lines_require_action_and_evidence disposition=FIXED noise=managed_governance_and_uncommitted_symbols disposition=NOT_PRODUCT_DEFECT
 2026-08-11T19:23:00Z VALIDATION host_unittest=PASS count=30 docker_networkless=PASS first_governance=FAIL code=GOV-ARCHITECTURE-001 disposition=FIXED_NOT_PERSISTENT_DATA_MOVEMENT
 2026-08-11T19:23:20Z GOVERNANCE actor=agent status=PASS errors=0 warnings=0 implementation_files=5 runtime_dependencies=0
+2026-08-11T19:25:01Z TODO2CODE_POSTCOMMIT mode=deterministic status=PASS graph=5ee87c5e702edbe08742f64fc3d3151103bb0183107e850ece75bd0af99bd2bc diagnostics=524 review_required=17 warning=295 info=212 code_change_plans=0
+2026-08-11T19:25:01Z TODO2CODE_TRIAGE product_intent_errors=0 remaining=metadata_risk_prose_future_publication_and_bootstrap_linkage llm_status=LLM_UNAVAILABLE
