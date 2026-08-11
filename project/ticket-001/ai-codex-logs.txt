@@ -9,3 +9,6 @@
 2026-08-11T18:00:00Z INVENTORY founder-dsl git=6564c3ddcfc150ef8ba0002de94b82974b86685e selected inputs clean; unrelated worktree changes preserved
 2026-08-11T19:00:00Z ADOPTION new-project version=0.14.1 revision=3549d21a5a31fea87b2dd4da37d8e8bd793f20f6
 2026-08-11T19:03:11Z AUTH SESSION_EXECUTION_AUTHORIZATION recorded by new-ticket.sh
+2026-08-11T19:20:00Z BOOTSTRAP adoption=PASS governance=PASS docker_networkless=PASS commit=99138aa895774c7675942188393404b3687677d7
+2026-08-11T19:21:00Z PUBLICATION repository=github.com/subactor/twin visibility=private default=main delete_branch_on_merge=true
+2026-08-11T19:22:00Z PLAN accepted_base=99138aa895774c7675942188393404b3687677d7 branch=ticket/001-twin-standard-v1 authorization=SESSION_EXECUTION_AUTHORIZATION

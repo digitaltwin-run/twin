@@ -34,10 +34,12 @@ in the core while treating CLI, shell, REST and MCP as adapters.
 - Adopted `new-project` 0.14.1 from exact revision
   `3549d21a5a31fea87b2dd4da37d8e8bd793f20f6`.
 - Drafted the repository bootstrap, source-decision architecture and CI shell.
+- Published the private governed bootstrap at base
+  `99138aa895774c7675942188393404b3687677d7` and entered the approved bounded
+  ticket branch.
 
 ## Unfinished work
 
-- Commit and publish the governed bootstrap on `main`.
 - Implement the five ticket-scoped contract, profile, generator and test files.
 - Record todo2code required-LLM and deterministic evidence, push the ticket
   branch, open a PR and verify required checks.

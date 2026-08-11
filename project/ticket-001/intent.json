@@ -8,10 +8,91 @@
     "priority": "P1",
     "origin": "requested"
   },
-  "allowedPaths": ["project/ticket-001/**", "TODO.md", "project/TICKETS.md"],
+  "allowedPaths": [
+    "spec/TWIN_STANDARD.md",
+    "proto/twin/v1/twin.proto",
+    "profiles/generic-twin.json",
+    "src/twin_standard.py",
+    "tests/test_twin_standard.py",
+    "project/ticket-001/**",
+    "TODO.md",
+    "project/TICKETS.md"
+  ],
   "forbiddenPaths": ["project/ticket-*/user-*.md"],
-  "stacks": [],
+  "stacks": ["python", "docker"],
   "dependsOn": [],
   "conflictsWith": [],
-  "integrationTicket": null
+  "integrationTicket": null,
+  "delivery": {
+    "acceptedBaseSha": "99138aa895774c7675942188393404b3687677d7",
+    "targetBranch": "main",
+    "outcome": "Twin Standard v1 validates one language-neutral protobuf-first all-traits profile and deterministically generates a portable contract and conformance bundle for any language identifier",
+    "nonGoals": [
+      "No generation or execution of provider-specific application code",
+      "No modification of any source Twin repository or exported snapshot",
+      "No persistent event-store or production connector implementation",
+      "No deployment, public visibility, release, merge or secret access",
+      "No LLM result can grant authority or replace deterministic validation"
+    ],
+    "complexity": "S",
+    "estimatedMinutes": 30,
+    "budgets": {
+      "maxImplementationFiles": 5,
+      "maxAffectedComponents": 2,
+      "maxPublicInterfaceChanges": 0,
+      "maxRuntimeDependencies": 0
+    },
+    "architecture": {
+      "status": "accepted",
+      "decision": "Use a canonical proto3 semantic model plus a declarative all-traits profile; validate CQRS, Event Sourcing, replay, authority and adapter invariants before atomically generating language-neutral contract metadata",
+      "components": [
+        {
+          "name": "twin-contract",
+          "paths": ["spec/TWIN_STANDARD.md", "proto/twin/v1/twin.proto", "profiles/generic-twin.json"]
+        },
+        {
+          "name": "validator-generator",
+          "paths": ["src/twin_standard.py", "tests/test_twin_standard.py"]
+        }
+      ],
+      "responsibilityChanges": false,
+      "interfaceChanges": [],
+      "dataChanges": ["Introduces the initial Twin profile, operation, event envelope and generated-bundle schemas"],
+      "ui": {"impact": "none", "states": [], "evidence": []},
+      "rollback": "Revert ticket-001 before any stable release; generated bundles remain identifiable by their profile and protobuf hashes"
+    },
+    "runtimeDependencies": [],
+    "validation": [
+      {
+        "criterion": "AC-01",
+        "commands": ["PYTHONPATH=src python3 -m unittest discover -s tests -v"],
+        "evidence": "Positive and negative fixtures enforce CQRS, Event Sourcing, evidence, connector, replay and authority invariants"
+      },
+      {
+        "criterion": "AC-02",
+        "commands": ["PYTHONPATH=src python3 -m twin_standard validate profiles/generic-twin.json"],
+        "evidence": "The canonical profile resolves every declared protobuf message and required service"
+      },
+      {
+        "criterion": "AC-03",
+        "commands": ["PYTHONPATH=src python3 -m unittest discover -s tests -v"],
+        "evidence": "Every all-traits operation is bound exactly once across CLI, shell, REST and MCP"
+      },
+      {
+        "criterion": "AC-04",
+        "commands": ["PYTHONPATH=src python3 -m unittest discover -s tests -v"],
+        "evidence": "Mutation tests fail closed with stable TWIN diagnostics"
+      },
+      {
+        "criterion": "AC-05",
+        "commands": ["PYTHONPATH=src python3 -m unittest discover -s tests -v", "docker build -t twin-ci .", "docker run --rm --network none twin-ci"],
+        "evidence": "Two fresh generations are byte-identical and an existing destination is never overwritten"
+      },
+      {
+        "criterion": "AC-06",
+        "commands": ["./project/governance-check.sh --actor agent --base 99138aa895774c7675942188393404b3687677d7 --head HEAD"],
+        "evidence": "Host, Docker and ticket governance pass with no runtime dependencies and five implementation files"
+      }
+    ]
+  }
 }
