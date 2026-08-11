@@ -45,9 +45,17 @@ already verified in `subactor/validator-agent`.
 - The first governance run rejected the combined validation identifier
   `AC-01/AC-02`; publication stayed stopped while the intent evidence was split
   into separately valid AC-01 and AC-02 records.
+- Ran current todo2code with Markdown, documentation and communication all set
+  to required LLM. The provider rejected the first Markdown request because
+  the weekly key limit was exhausted; the run stayed fail-closed, emitted no
+  success manifest and was not replaced or relabelled as deterministic LLM
+  evidence.
 
 ## Blockers
 
 - None inside the recorded intent; proceed without a second confirmation.
+- Local todo2code semantic review is unavailable until its provider limit
+  resets; independent exact-head Validator LLM review remains mandatory before
+  merge.
 - New authority remains required for destructive action, secret access, new
   external coordination, material objective expansion and trusted merge.

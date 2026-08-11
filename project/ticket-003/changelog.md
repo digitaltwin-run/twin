@@ -13,3 +13,5 @@
 - Passed YAML/JSON parsing plus 58 host and 58 networkless-container tests.
 - Kept publication stopped after governance rejected a combined acceptance
   identifier, then split its evidence into valid AC-01 and AC-02 records.
+- Recorded todo2code required-LLM as unavailable at the provider boundary; no
+  deterministic fallback was presented as semantic LLM evidence.
