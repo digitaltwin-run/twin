@@ -1,0 +1,93 @@
+{
+  "schema": "new-project.intent/v3",
+  "ticket": "ticket-003",
+  "summary": "Upgrade CI actions to Node 24 releases",
+  "workstream": "infrastructure",
+  "classification": {
+    "kind": "SERVICE",
+    "priority": "P2",
+    "origin": "health"
+  },
+  "allowedPaths": [
+    ".github/workflows/ci.yml",
+    "project/ticket-003/**",
+    "TODO.md",
+    "project/TICKETS.md"
+  ],
+  "forbiddenPaths": ["project/ticket-*/user-*.md"],
+  "stacks": ["github-actions", "yaml"],
+  "dependsOn": [],
+  "conflictsWith": [],
+  "integrationTicket": null,
+  "delivery": {
+    "acceptedBaseSha": "96f9c215f1b69731f8cdb13d871b58f83f0a5ab2",
+    "targetBranch": "main",
+    "outcome": "Twin-owned checkout and Python setup steps use immutable Node 24 action releases without changing CI or governance behavior",
+    "nonGoals": [
+      "No change to workflow events, permissions, job names, scripts, shell commands or Python version",
+      "No change to the pinned reusable wellmanifest/new-project governance package",
+      "No application, protobuf, profile, public interface, dependency, persistent data or secret change"
+    ],
+    "complexity": "XS",
+    "estimatedMinutes": 10,
+    "budgets": {
+      "maxImplementationFiles": 1,
+      "maxAffectedComponents": 1,
+      "maxPublicInterfaceChanges": 0,
+      "maxRuntimeDependencies": 0
+    },
+    "architecture": {
+      "status": "accepted",
+      "decision": "Retain the existing twin-ci topology and exact inputs while replacing only immutable GitHub Action revisions with their published Node 24 successors",
+      "components": [
+        {
+          "name": "twin-ci-actions",
+          "paths": [".github/workflows/ci.yml"]
+        }
+      ],
+      "responsibilityChanges": false,
+      "interfaceChanges": [],
+      "dataChanges": [],
+      "ui": {
+        "impact": "none",
+        "states": [],
+        "evidence": []
+      },
+      "rollback": "Revert the single workflow implementation commit; no application or persistent data migration exists"
+    },
+    "runtimeDependencies": [],
+    "validation": [
+      {
+        "criterion": "AC-01/AC-02",
+        "commands": [
+          "rg -n 'actions/(checkout|setup-python)@' .github/workflows/ci.yml"
+        ],
+        "evidence": "Every twin-owned checkout and setup-python occurrence resolves to the declared Node 24 exact commit"
+      },
+      {
+        "criterion": "AC-03",
+        "commands": [
+          "git diff --word-diff=porcelain 96f9c215f1b69731f8cdb13d871b58f83f0a5ab2 -- .github/workflows/ci.yml"
+        ],
+        "evidence": "The implementation diff changes only action revision tokens"
+      },
+      {
+        "criterion": "AC-04",
+        "commands": [
+          "PYTHONPATH=src python3 -m unittest discover -s tests -v",
+          "docker build -t twin-ci .",
+          "docker run --rm --network none twin-ci",
+          "./project/governance-check.sh --actor agent --base 96f9c215f1b69731f8cdb13d871b58f83f0a5ab2 --head HEAD"
+        ],
+        "evidence": "Host, networkless Docker and bounded governance checks pass"
+      },
+      {
+        "criterion": "AC-05",
+        "commands": [
+          "Verify protected push and pull-request jobs and their annotations on the published exact head"
+        ],
+        "evidence": "Hosted twin-owned jobs pass without their previous Node 20 deprecation annotations"
+      }
+    ]
+  }
+}
