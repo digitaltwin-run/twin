@@ -21,3 +21,12 @@
 2026-08-11T19:25:01Z TODO2CODE_POSTCOMMIT mode=deterministic status=PASS graph=5ee87c5e702edbe08742f64fc3d3151103bb0183107e850ece75bd0af99bd2bc diagnostics=524 review_required=17 warning=295 info=212 code_change_plans=0
 2026-08-11T19:25:01Z TODO2CODE_TRIAGE product_intent_errors=0 remaining=metadata_risk_prose_future_publication_and_bootstrap_linkage llm_status=LLM_UNAVAILABLE
 2026-08-11T19:26:55Z PR repository=subactor/twin number=1 state=OPEN head=1f4156bfe427d2b53414ce33eca85e13388e4309 mergeable=MERGEABLE review=REQUIRED test=PASS windows_governance=PASS merge=NOT_AUTHORIZED
+2026-08-11T19:32:00Z SCOPE_EXPANSION source=user objective=URI_PROCESS_TWINS authorization=SESSION_EXECUTION_AUTHORIZATION pr=1 review_before_change=none
+2026-08-11T19:32:00Z INVENTORY digitaltwin-run/youtube-service-twin git=567dbb21fc2d9380c22a356ca868f1971430296a selected=clean
+2026-08-11T19:32:00Z INVENTORY digitaltwin-run/linkedin-service-twin git=53839b7df492ffac07d3c6d82ff898391780e96e selected=clean
+2026-08-11T19:32:00Z INVENTORY digitaltwin-run/urirun-twin-human git=5aa79f2cd01101300940c6d032a8bd926490c038 selected=clean unrelated_pyc_changes=preserved
+2026-08-11T19:32:00Z INVENTORY digitaltwin-run/ifuri-buyer git=a1a1b2a9be7cc03b647f3ffe9885f9e2abe76756 selected=clean
+2026-08-11T19:32:00Z INVENTORY digitaltwin-run/ifuri-customer git=1e102a90631a55792473c337fbdcb94c3e42ab57 selected=clean
+2026-08-11T19:32:00Z INVENTORY digitaltwin-run/dock2tauri git=355ff47caa247519678582e9485c57692efd69cd selected=clean
+2026-08-11T19:32:00Z INVENTORY digitaltwin-run/pc1 git=cd52d831509f4ef9f1334a75ad64b48c0812333f selected=clean
+2026-08-11T19:32:00Z PLAN_REVISION uri_route=canonical capability_resolution=fail_closed process_graph=immutable_dag execution=receipted actor_authority=separate

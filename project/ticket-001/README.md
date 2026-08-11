@@ -3,12 +3,12 @@
 - **ID**: ticket-001
 - **Owner**: unresolved:human
 - **Status**: IN_PROGRESS
-- **Workflow state**: PUBLICATION
+- **Workflow state**: EDIT
 - **Created**: 2026-08-11
 
 ## Goal and scope
 
-Create Twin Standard v1 as a language-neutral, protobuf-first CQRS/Event Sourcing contract and generate a portable reference bundle from one validated profile. Before publishing output, reject invalid operations, replay behavior, authority, evidence, connector or transport intent with stable diagnostics and leave no partial destination.
+Create Twin Standard v1 as a language-neutral, protobuf-first CQRS/Event Sourcing contract that also standardizes URI-addressed capabilities and multi-step URI Processes. Generate a portable reference bundle from one validated profile; before publishing output, reject invalid operations, routes, process graphs, replay behavior, authority, evidence, connector or transport intent with stable diagnostics and leave no partial destination.
 
 ## Acceptance criteria
 
@@ -18,6 +18,8 @@ Create Twin Standard v1 as a language-neutral, protobuf-first CQRS/Event Sourcin
 - [x] AC-04: Verify with mutation tests that incomplete transports, mixed CQRS duties, connector-owned domain mutation, unsafe shell, incomplete event metadata, replay effects and invalid traits fail with stable `TWIN-*` diagnostics.
 - [x] AC-05: Verify by generating two fresh bundles that any safe language identifier produces byte-identical manifest, protobuf, transport-map and conformance files; if the profile is invalid or destination exists, reject before publishing and preserve existing data.
 - [x] AC-06: Verify by host tests, a networkless Docker run and governance base/head validation that the delivery has zero runtime dependencies and exactly five implementation files.
+- [ ] AC-07: Verify that every capability operation has one canonical URI whose query/command effect agrees with CQRS, and that reviewed baseline plus live discovery resolves only concrete connector routes or an explicit typed gap.
+- [ ] AC-08: Verify that URI Process definitions have immutable IDs, acyclic step dependencies, pinned capability-map resolution, timeouts, retries, failure policy, per-step idempotency/receipts, external authority for effects and replay-safe run states including human-task request/resolve/decline/cancel.
 
 ## Risks and boundaries
 
@@ -25,6 +27,7 @@ Create Twin Standard v1 as a language-neutral, protobuf-first CQRS/Event Sourcin
 - Require shell support to use argv-only process calls and reject evaluation, interpolation and shell metacharacters.
 - Treat “all traits” as independently composable capabilities, not a forced monolith.
 - Treat exported provider snapshots as fingerprinted provenance inputs, not authoritative git histories.
+- Treat actor/persona twins as identity and competency descriptions only; reject any model in which impersonation, an LLM verdict or a declared grant creates effective authority.
 
 ## Participants
 

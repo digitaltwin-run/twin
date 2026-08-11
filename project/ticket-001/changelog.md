@@ -23,3 +23,6 @@
   proposed no code change.
 - Clarified that the ticket introduces contracts but moves no persistent data
   or component ownership.
+- Accepted a pre-release scope revision to standardize canonical URI
+  capabilities, capability discovery/resolution and multi-step URI Processes
+  based on the latest `digitaltwin-run` service, persona and scenario twins.

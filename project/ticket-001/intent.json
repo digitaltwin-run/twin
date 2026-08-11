@@ -26,7 +26,7 @@
   "delivery": {
     "acceptedBaseSha": "99138aa895774c7675942188393404b3687677d7",
     "targetBranch": "main",
-    "outcome": "Twin Standard v1 validates one language-neutral protobuf-first all-traits profile and deterministically generates a portable contract and conformance bundle for any language identifier",
+    "outcome": "Twin Standard v1 validates one language-neutral protobuf-first all-traits profile including canonical URI capabilities and replay-safe multi-step URI Processes, then deterministically generates a portable contract and conformance bundle for any language identifier",
     "nonGoals": [
       "No generation or execution of provider-specific application code",
       "No modification of any source Twin repository or exported snapshot",
@@ -44,7 +44,7 @@
     },
     "architecture": {
       "status": "accepted",
-      "decision": "Use a canonical proto3 semantic model plus a declarative all-traits profile; validate CQRS, Event Sourcing, replay, authority and adapter invariants before atomically generating language-neutral contract metadata",
+      "decision": "Use a canonical proto3 semantic model plus a declarative all-traits profile; model each operation as a canonical URI capability and each workflow as an immutable DAG resolved against a hashed reviewed capability map, then validate CQRS, Event Sourcing, replay, step receipts, authority and adapter invariants before atomically generating language-neutral contract metadata",
       "components": [
         {
           "name": "twin-contract",
@@ -92,6 +92,16 @@
         "criterion": "AC-06",
         "commands": ["./project/governance-check.sh --actor agent --base 99138aa895774c7675942188393404b3687677d7 --head HEAD"],
         "evidence": "Host, Docker and ticket governance pass with no runtime dependencies and five implementation files"
+      },
+      {
+        "criterion": "AC-07",
+        "commands": ["PYTHONPATH=src python3 -m unittest discover -s tests -v"],
+        "evidence": "URI grammar, effect agreement, capability identity, concrete provider routing and typed resolution gaps are covered by positive and mutation tests"
+      },
+      {
+        "criterion": "AC-08",
+        "commands": ["PYTHONPATH=src python3 -m unittest discover -s tests -v", "docker run --rm --network none twin-ci"],
+        "evidence": "Process DAG, run-state, timeout, retry, idempotency, receipt, human-task, authority and replay invariants are covered by networkless conformance tests"
       }
     ]
   }

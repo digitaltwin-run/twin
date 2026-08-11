@@ -24,6 +24,9 @@ in the core while treating CLI, shell, REST and MCP as adapters.
 5. Add negative and conformance tests, then run host, container, governance and
    todo2code LLM-first audits.
 6. Push a ticket branch and open a protected pull request without merging it.
+7. Extend the same pre-release contract with URI capability discovery,
+   resolution gaps and replay-safe process DAGs based on the latest
+   `digitaltwin-run` twins, then revalidate PR #1.
 
 ## Actual changes
 
@@ -56,10 +59,25 @@ in the core while treating CLI, shell, REST and MCP as adapters.
 - Published branch `ticket/001-twin-standard-v1` and opened pull request #1.
   Linux/container test and Windows governance checks passed on the published
   implementation head.
+- Inventoried the latest URI-oriented `digitaltwin-run` projects read-only and
+  accepted the user's explicit scope expansion before changing the contract.
+
+## URI Process revision plan
+
+1. Add canonical URI route, capability map, typed gap, process definition,
+   process plan/run, step receipt and human-task messages.
+2. Require operation URIs to agree with CQRS effects and concrete provider
+   discovery.
+3. Validate immutable acyclic process definitions, capability-map pinning,
+   timeouts, retries, failure policy, idempotency, authority and replay safety.
+4. Emit URI/process conformance cases without generating a runtime.
+5. Re-run LLM-first intent audit, deterministic controls, host/Docker tests,
+   governance and PR CI.
 
 ## Unfinished work
 
-- Independent trusted review and merge remain external authorization gates.
+- Implement and validate the URI Process revision, then obtain independent
+  trusted review; merge remains an external authorization gate.
 
 ## Blockers
 
