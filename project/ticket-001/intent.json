@@ -57,7 +57,7 @@
       ],
       "responsibilityChanges": false,
       "interfaceChanges": [],
-      "dataChanges": ["Introduces the initial Twin profile, operation, event envelope and generated-bundle schemas"],
+      "dataChanges": [],
       "ui": {"impact": "none", "states": [], "evidence": []},
       "rollback": "Revert ticket-001 before any stable release; generated bundles remain identifiable by their profile and protobuf hashes"
     },

@@ -37,12 +37,21 @@ in the core while treating CLI, shell, REST and MCP as adapters.
 - Published the private governed bootstrap at base
   `99138aa895774c7675942188393404b3687677d7` and entered the approved bounded
   ticket branch.
+- Implemented the normative standard, canonical proto3 model, all-traits
+  profile, deterministic validator/generator and 30-test conformance suite in
+  the five declared implementation files.
+- Ran todo2code LLM-first at commit `732e5416b5797cbeabc8b2d678ba0b86971782ec`.
+  Required-LLM failed closed because the provider's weekly limit was exhausted;
+  no deterministic fallback was presented as an LLM result.
+- Ran a separately labelled deterministic todo2code control. It completed with
+  graph fingerprint `5e1b67a72f34122ad8e30457f8c60b6e652f7c2fc191f8c48fe4bce30d48dcb8`,
+  generated no code-change proposal and exposed line-wrapped acceptance text,
+  which was rewritten as action/evidence statements.
 
 ## Unfinished work
 
-- Implement the five ticket-scoped contract, profile, generator and test files.
-- Record todo2code required-LLM and deterministic evidence, push the ticket
-  branch, open a PR and verify required checks.
+- Run final host, networkless-container and governance validation.
+- Push the ticket branch, open a PR and verify required checks.
 
 ## Blockers
 

@@ -1,0 +1,253 @@
+{
+  "$schema": "https://subactor.dev/twin/profile/v1",
+  "schema": "twin.profile/v1",
+  "id": "generic-all-traits",
+  "version": 1,
+  "description": "Language-neutral reference Twin with every standard trait",
+  "aggregate": {
+    "type": "GenericTwin",
+    "idPattern": "^[A-Za-z0-9][A-Za-z0-9:._/-]{0,255}$",
+    "snapshotSourceOfTruth": false
+  },
+  "protobuf": {
+    "path": "proto/twin/v1/twin.proto",
+    "package": "subactor.twin.v1"
+  },
+  "eventSourcing": {
+    "appendOnly": true,
+    "optimisticConcurrency": true,
+    "expectedVersionRequired": true,
+    "transactionalOutbox": true,
+    "replayDefault": "observe",
+    "replayExecutesEffects": false,
+    "requiredMetadata": [
+      "event_id",
+      "aggregate_id",
+      "aggregate_type",
+      "aggregate_version",
+      "sequence",
+      "event_type",
+      "schema_version",
+      "actor_ref",
+      "authority_ref",
+      "correlation_id",
+      "causation_id",
+      "idempotency_key",
+      "occurred_at",
+      "evidence",
+      "payload"
+    ]
+  },
+  "cqrs": {
+    "commandsEmitEvents": true,
+    "queriesReadProjections": true,
+    "commandsWriteProjections": false,
+    "queriesEmitEvents": false
+  },
+  "authority": {
+    "requiredForMutations": true,
+    "receiptsRequired": true,
+    "secrets": {
+      "handlesOnly": true,
+      "valuesForbidden": true
+    }
+  },
+  "observability": {
+    "evidenceRequired": true,
+    "requiredJoinKeys": ["aggregate_id", "target_uri"],
+    "unevaluableState": "UNEVALUABLE",
+    "healthyStates": ["HEALTHY"]
+  },
+  "connectors": [
+    {
+      "id": "effect-outbox",
+      "owner": "adapter",
+      "accepts": "subactor.twin.v1.OutboxMessage",
+      "domainRules": false,
+      "eventStore": false,
+      "authorityDecisions": false
+    }
+  ],
+  "traits": [
+    {"id": "reconciliation", "operations": ["twin.reconcile"]},
+    {"id": "mirror", "operations": ["twin.mirror.refresh", "twin.get"]},
+    {"id": "invariant", "operations": ["twin.invariant.evaluate"]},
+    {"id": "simulation", "operations": ["twin.simulate"]},
+    {"id": "preflight-verification", "operations": ["twin.verify"]},
+    {"id": "notification", "operations": ["twin.notification.enqueue"]},
+    {"id": "outbox", "operations": ["twin.outbox.acknowledge", "twin.history"]},
+    {"id": "probe", "operations": ["twin.observation.publish", "twin.health"]}
+  ],
+  "operations": [
+    {
+      "id": "twin.reconcile",
+      "kind": "command",
+      "request": "subactor.twin.v1.ReconcileCommand",
+      "response": "subactor.twin.v1.CommandReceipt",
+      "mutating": true,
+      "emits": ["subactor.twin.v1.ReconciliationRequested"]
+    },
+    {
+      "id": "twin.mirror.refresh",
+      "kind": "command",
+      "request": "subactor.twin.v1.MirrorRefreshCommand",
+      "response": "subactor.twin.v1.CommandReceipt",
+      "mutating": true,
+      "emits": ["subactor.twin.v1.MirrorRefreshRequested"]
+    },
+    {
+      "id": "twin.invariant.evaluate",
+      "kind": "command",
+      "request": "subactor.twin.v1.InvariantEvaluationCommand",
+      "response": "subactor.twin.v1.CommandReceipt",
+      "mutating": true,
+      "emits": ["subactor.twin.v1.InvariantEvaluated"]
+    },
+    {
+      "id": "twin.simulate",
+      "kind": "command",
+      "request": "subactor.twin.v1.SimulationCommand",
+      "response": "subactor.twin.v1.CommandReceipt",
+      "mutating": true,
+      "emits": ["subactor.twin.v1.SimulationRecorded"]
+    },
+    {
+      "id": "twin.verify",
+      "kind": "command",
+      "request": "subactor.twin.v1.VerificationCommand",
+      "response": "subactor.twin.v1.CommandReceipt",
+      "mutating": true,
+      "emits": ["subactor.twin.v1.VerificationRecorded"]
+    },
+    {
+      "id": "twin.notification.enqueue",
+      "kind": "command",
+      "request": "subactor.twin.v1.NotificationCommand",
+      "response": "subactor.twin.v1.CommandReceipt",
+      "mutating": true,
+      "emits": ["subactor.twin.v1.NotificationEnqueued"]
+    },
+    {
+      "id": "twin.outbox.acknowledge",
+      "kind": "command",
+      "request": "subactor.twin.v1.OutboxAcknowledgeCommand",
+      "response": "subactor.twin.v1.CommandReceipt",
+      "mutating": true,
+      "emits": ["subactor.twin.v1.OutboxAcknowledged"]
+    },
+    {
+      "id": "twin.observation.publish",
+      "kind": "command",
+      "request": "subactor.twin.v1.PublishObservationCommand",
+      "response": "subactor.twin.v1.CommandReceipt",
+      "mutating": true,
+      "emits": ["subactor.twin.v1.ObservationPublished"]
+    },
+    {
+      "id": "twin.get",
+      "kind": "query",
+      "request": "subactor.twin.v1.GetTwinQuery",
+      "response": "subactor.twin.v1.TwinView",
+      "mutating": false,
+      "projection": "TwinView"
+    },
+    {
+      "id": "twin.history",
+      "kind": "query",
+      "request": "subactor.twin.v1.GetHistoryQuery",
+      "response": "subactor.twin.v1.HistoryView",
+      "mutating": false,
+      "projection": "HistoryView"
+    },
+    {
+      "id": "twin.health",
+      "kind": "query",
+      "request": "subactor.twin.v1.GetHealthQuery",
+      "response": "subactor.twin.v1.HealthView",
+      "mutating": false,
+      "projection": "HealthView"
+    }
+  ],
+  "transports": {
+    "cli": {
+      "enabled": true,
+      "bindings": [
+        {"operation": "twin.reconcile", "argv": ["twin", "command", "reconcile"]},
+        {"operation": "twin.mirror.refresh", "argv": ["twin", "command", "mirror-refresh"]},
+        {"operation": "twin.invariant.evaluate", "argv": ["twin", "command", "invariant-evaluate"]},
+        {"operation": "twin.simulate", "argv": ["twin", "command", "simulate"]},
+        {"operation": "twin.verify", "argv": ["twin", "command", "verify"]},
+        {"operation": "twin.notification.enqueue", "argv": ["twin", "command", "notification-enqueue"]},
+        {"operation": "twin.outbox.acknowledge", "argv": ["twin", "command", "outbox-acknowledge"]},
+        {"operation": "twin.observation.publish", "argv": ["twin", "command", "observation-publish"]},
+        {"operation": "twin.get", "argv": ["twin", "query", "get"]},
+        {"operation": "twin.history", "argv": ["twin", "query", "history"]},
+        {"operation": "twin.health", "argv": ["twin", "query", "health"]}
+      ]
+    },
+    "shell": {
+      "enabled": true,
+      "argvOnly": true,
+      "noEval": true,
+      "noInterpolation": true,
+      "bindings": [
+        {"operation": "twin.reconcile", "argv": ["twin", "command", "reconcile", "{request_protojson}"]},
+        {"operation": "twin.mirror.refresh", "argv": ["twin", "command", "mirror-refresh", "{request_protojson}"]},
+        {"operation": "twin.invariant.evaluate", "argv": ["twin", "command", "invariant-evaluate", "{request_protojson}"]},
+        {"operation": "twin.simulate", "argv": ["twin", "command", "simulate", "{request_protojson}"]},
+        {"operation": "twin.verify", "argv": ["twin", "command", "verify", "{request_protojson}"]},
+        {"operation": "twin.notification.enqueue", "argv": ["twin", "command", "notification-enqueue", "{request_protojson}"]},
+        {"operation": "twin.outbox.acknowledge", "argv": ["twin", "command", "outbox-acknowledge", "{request_protojson}"]},
+        {"operation": "twin.observation.publish", "argv": ["twin", "command", "observation-publish", "{request_protojson}"]},
+        {"operation": "twin.get", "argv": ["twin", "query", "get", "{request_protojson}"]},
+        {"operation": "twin.history", "argv": ["twin", "query", "history", "{request_protojson}"]},
+        {"operation": "twin.health", "argv": ["twin", "query", "health", "{request_protojson}"]}
+      ]
+    },
+    "rest": {
+      "enabled": true,
+      "encoding": "protojson",
+      "bindings": [
+        {"operation": "twin.reconcile", "method": "POST", "path": "/v1/twins/{aggregate_id}:reconcile"},
+        {"operation": "twin.mirror.refresh", "method": "POST", "path": "/v1/twins/{aggregate_id}:refreshMirror"},
+        {"operation": "twin.invariant.evaluate", "method": "POST", "path": "/v1/twins/{aggregate_id}:evaluateInvariants"},
+        {"operation": "twin.simulate", "method": "POST", "path": "/v1/twins/{aggregate_id}:simulate"},
+        {"operation": "twin.verify", "method": "POST", "path": "/v1/twins/{aggregate_id}:verify"},
+        {"operation": "twin.notification.enqueue", "method": "POST", "path": "/v1/twins/{aggregate_id}:enqueueNotification"},
+        {"operation": "twin.outbox.acknowledge", "method": "POST", "path": "/v1/twins/{aggregate_id}:acknowledgeOutbox"},
+        {"operation": "twin.observation.publish", "method": "POST", "path": "/v1/twins/{aggregate_id}:publishObservation"},
+        {"operation": "twin.get", "method": "GET", "path": "/v1/twins/{aggregate_id}"},
+        {"operation": "twin.history", "method": "GET", "path": "/v1/twins/{aggregate_id}/history"},
+        {"operation": "twin.health", "method": "GET", "path": "/v1/twins/{aggregate_id}/health"}
+      ]
+    },
+    "mcp": {
+      "enabled": true,
+      "protocol": "json-rpc",
+      "encoding": "protojson",
+      "transports": ["stdio", "streamable-http"],
+      "bindings": [
+        {"operation": "twin.reconcile", "kind": "tool", "name": "twin_reconcile", "requiresAuthority": true},
+        {"operation": "twin.mirror.refresh", "kind": "tool", "name": "twin_mirror_refresh", "requiresAuthority": true},
+        {"operation": "twin.invariant.evaluate", "kind": "tool", "name": "twin_invariant_evaluate", "requiresAuthority": true},
+        {"operation": "twin.simulate", "kind": "tool", "name": "twin_simulate", "requiresAuthority": true},
+        {"operation": "twin.verify", "kind": "tool", "name": "twin_verify", "requiresAuthority": true},
+        {"operation": "twin.notification.enqueue", "kind": "tool", "name": "twin_notification_enqueue", "requiresAuthority": true},
+        {"operation": "twin.outbox.acknowledge", "kind": "tool", "name": "twin_outbox_acknowledge", "requiresAuthority": true},
+        {"operation": "twin.observation.publish", "kind": "tool", "name": "twin_observation_publish", "requiresAuthority": true},
+        {"operation": "twin.get", "kind": "resource", "name": "twin://{aggregate_id}", "requiresAuthority": false},
+        {"operation": "twin.history", "kind": "resource", "name": "twin://{aggregate_id}/history", "requiresAuthority": false},
+        {"operation": "twin.health", "kind": "resource", "name": "twin://{aggregate_id}/health", "requiresAuthority": false}
+      ]
+    }
+  },
+  "generation": {
+    "executableCode": false,
+    "outputs": [
+      "twin.manifest.json",
+      "proto/twin/v1/twin.proto",
+      "transport-map.json",
+      "conformance.json"
+    ]
+  }
+}

@@ -1,0 +1,199 @@
+syntax = "proto3";
+
+package subactor.twin.v1;
+
+import "google/protobuf/any.proto";
+import "google/protobuf/timestamp.proto";
+
+message ActorRef {
+  string subject = 1;
+  string tenant = 2;
+}
+
+message AuthorityRef {
+  string decision_id = 1;
+  string policy_version = 2;
+}
+
+message EvidenceRef {
+  string evidence_id = 1;
+  string aggregate_id = 2;
+  string target_uri = 3;
+  string media_type = 4;
+  bytes digest_sha256 = 5;
+}
+
+message CommandEnvelope {
+  string operation_id = 1;
+  string command_id = 2;
+  string aggregate_id = 3;
+  string aggregate_type = 4;
+  uint64 expected_version = 5;
+  string idempotency_key = 6;
+  ActorRef actor_ref = 7;
+  AuthorityRef authority_ref = 8;
+  string correlation_id = 9;
+  string causation_id = 10;
+  google.protobuf.Timestamp occurred_at = 11;
+  google.protobuf.Any payload = 12;
+}
+
+message EventEnvelope {
+  string event_id = 1;
+  string aggregate_id = 2;
+  string aggregate_type = 3;
+  uint64 aggregate_version = 4;
+  uint64 sequence = 5;
+  string event_type = 6;
+  uint32 schema_version = 7;
+  ActorRef actor_ref = 8;
+  AuthorityRef authority_ref = 9;
+  string correlation_id = 10;
+  string causation_id = 11;
+  string idempotency_key = 12;
+  google.protobuf.Timestamp occurred_at = 13;
+  repeated EvidenceRef evidence = 14;
+  google.protobuf.Any payload = 15;
+}
+
+message QueryEnvelope {
+  string operation_id = 1;
+  string query_id = 2;
+  string aggregate_id = 3;
+  ActorRef actor_ref = 4;
+  string correlation_id = 5;
+  google.protobuf.Any parameters = 6;
+}
+
+message CommandReceipt {
+  string receipt_id = 1;
+  string command_id = 2;
+  string aggregate_id = 3;
+  AuthorityRef authority_ref = 4;
+  uint64 aggregate_version = 5;
+  repeated string event_ids = 6;
+  string status = 7;
+}
+
+message QueryResult {
+  string query_id = 1;
+  string projection = 2;
+  uint64 source_sequence = 3;
+  google.protobuf.Timestamp projected_at = 4;
+  repeated EvidenceRef evidence = 5;
+  google.protobuf.Any payload = 6;
+}
+
+enum ObservationStatus {
+  OBSERVATION_STATUS_UNSPECIFIED = 0;
+  OBSERVATION_STATUS_OBSERVED = 1;
+  OBSERVATION_STATUS_UNEVALUABLE = 2;
+  OBSERVATION_STATUS_EXPIRED = 3;
+}
+
+message Observation {
+  string observation_id = 1;
+  string aggregate_id = 2;
+  string target_uri = 3;
+  string metric = 4;
+  ObservationStatus status = 5;
+  google.protobuf.Any value = 6;
+  google.protobuf.Timestamp observed_at = 7;
+  google.protobuf.Timestamp expires_at = 8;
+  repeated EvidenceRef evidence = 9;
+}
+
+message OutboxMessage {
+  string message_id = 1;
+  string aggregate_id = 2;
+  string operation = 3;
+  string target_uri = 4;
+  string credential_ref = 5;
+  google.protobuf.Any payload = 6;
+  repeated string source_event_ids = 7;
+}
+
+message ReconcileCommand { CommandEnvelope envelope = 1; }
+message MirrorRefreshCommand { CommandEnvelope envelope = 1; }
+message InvariantEvaluationCommand { CommandEnvelope envelope = 1; }
+message SimulationCommand { CommandEnvelope envelope = 1; }
+message VerificationCommand { CommandEnvelope envelope = 1; }
+message NotificationCommand { CommandEnvelope envelope = 1; }
+message OutboxAcknowledgeCommand { CommandEnvelope envelope = 1; }
+message PublishObservationCommand {
+  CommandEnvelope envelope = 1;
+  Observation observation = 2;
+}
+
+message GetTwinQuery { QueryEnvelope envelope = 1; }
+message GetHistoryQuery { QueryEnvelope envelope = 1; }
+message GetHealthQuery { QueryEnvelope envelope = 1; }
+
+message TwinView { QueryResult result = 1; }
+message HistoryView { QueryResult result = 1; }
+message HealthView { QueryResult result = 1; }
+
+message ReconciliationRequested { string target_uri = 1; }
+message MirrorRefreshRequested { string target_uri = 1; }
+message InvariantEvaluated { string invariant_id = 1; bool satisfied = 2; }
+message SimulationRecorded { string scenario_id = 1; }
+message VerificationRecorded { string check_id = 1; bool eligible = 2; }
+message NotificationEnqueued { OutboxMessage message = 1; }
+message OutboxAcknowledged { string message_id = 1; string outcome = 2; }
+message ObservationPublished { Observation observation = 1; }
+
+message AppendEventsRequest {
+  string aggregate_id = 1;
+  uint64 expected_version = 2;
+  repeated EventEnvelope events = 3;
+}
+
+message AppendEventsResponse {
+  uint64 aggregate_version = 1;
+  repeated string event_ids = 2;
+}
+
+message ReadStreamRequest {
+  string aggregate_id = 1;
+  uint64 after_sequence = 2;
+  uint32 limit = 3;
+}
+
+message ReadStreamResponse { repeated EventEnvelope events = 1; }
+
+message RebuildProjectionRequest {
+  string projection = 1;
+  uint64 through_sequence = 2;
+  bool observe_only = 3;
+}
+
+message RebuildProjectionResponse {
+  string projection = 1;
+  uint64 source_sequence = 2;
+}
+
+service TwinCommandService {
+  rpc Reconcile(ReconcileCommand) returns (CommandReceipt);
+  rpc RefreshMirror(MirrorRefreshCommand) returns (CommandReceipt);
+  rpc EvaluateInvariant(InvariantEvaluationCommand) returns (CommandReceipt);
+  rpc Simulate(SimulationCommand) returns (CommandReceipt);
+  rpc Verify(VerificationCommand) returns (CommandReceipt);
+  rpc EnqueueNotification(NotificationCommand) returns (CommandReceipt);
+  rpc AcknowledgeOutbox(OutboxAcknowledgeCommand) returns (CommandReceipt);
+  rpc PublishObservation(PublishObservationCommand) returns (CommandReceipt);
+}
+
+service TwinQueryService {
+  rpc GetTwin(GetTwinQuery) returns (TwinView);
+  rpc GetHistory(GetHistoryQuery) returns (HistoryView);
+  rpc GetHealth(GetHealthQuery) returns (HealthView);
+}
+
+service TwinEventStore {
+  rpc Append(AppendEventsRequest) returns (AppendEventsResponse);
+  rpc Read(ReadStreamRequest) returns (ReadStreamResponse);
+}
+
+service TwinProjectionService {
+  rpc Rebuild(RebuildProjectionRequest) returns (RebuildProjectionResponse);
+}
