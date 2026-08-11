@@ -3,7 +3,7 @@
 - **ID**: ticket-001
 - **Owner**: unresolved:human
 - **Status**: IN_PROGRESS
-- **Workflow state**: EDIT
+- **Workflow state**: PUBLICATION
 - **Created**: 2026-08-11
 
 ## Goal and scope
@@ -18,8 +18,8 @@ Create Twin Standard v1 as a language-neutral, protobuf-first CQRS/Event Sourcin
 - [x] AC-04: Verify with mutation tests that incomplete transports, mixed CQRS duties, connector-owned domain mutation, unsafe shell, incomplete event metadata, replay effects and invalid traits fail with stable `TWIN-*` diagnostics.
 - [x] AC-05: Verify by generating two fresh bundles that any safe language identifier produces byte-identical manifest, protobuf, transport-map and conformance files; if the profile is invalid or destination exists, reject before publishing and preserve existing data.
 - [x] AC-06: Verify by host tests, a networkless Docker run and governance base/head validation that the delivery has zero runtime dependencies and exactly five implementation files.
-- [ ] AC-07: Verify that every capability operation has one canonical URI whose query/command effect agrees with CQRS, and that reviewed baseline plus live discovery resolves only concrete connector routes or an explicit typed gap.
-- [ ] AC-08: Verify that URI Process definitions have immutable IDs, acyclic step dependencies, pinned capability-map resolution, timeouts, retries, failure policy, per-step idempotency/receipts, external authority for effects and replay-safe run states including human-task request/resolve/decline/cancel.
+- [x] AC-07: Verify that every capability operation has one canonical URI whose query/command effect agrees with CQRS, and that reviewed baseline plus live discovery resolves only concrete connector routes or an explicit typed gap.
+- [x] AC-08: Verify that URI Process definitions have immutable IDs, acyclic step dependencies, pinned capability-map resolution, timeouts, retries, failure policy, per-step idempotency/receipts, external authority for effects and replay-safe run states including human-task request/resolve/decline/cancel.
 
 ## Risks and boundaries
 

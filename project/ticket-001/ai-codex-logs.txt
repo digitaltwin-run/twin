@@ -30,3 +30,9 @@
 2026-08-11T19:32:00Z INVENTORY digitaltwin-run/dock2tauri git=355ff47caa247519678582e9485c57692efd69cd selected=clean
 2026-08-11T19:32:00Z INVENTORY digitaltwin-run/pc1 git=cd52d831509f4ef9f1334a75ad64b48c0812333f selected=clean
 2026-08-11T19:32:00Z PLAN_REVISION uri_route=canonical capability_resolution=fail_closed process_graph=immutable_dag execution=receipted actor_authority=separate
+2026-08-11T19:47:20Z TEST_URI_PROCESS host_unittest=PASS count=53 profile_validation=PASS json_validation=PASS compileall=PASS
+2026-08-11T19:47:20Z TODO2CODE_URI_FINAL mode=require-llm tool=732e5416b5797cbeabc8b2d678ba0b86971782ec status=LLM_UNAVAILABLE reason=provider_weekly_limit no_fallback=true
+2026-08-11T19:47:20Z TODO2CODE_URI_CONTROL mode=deterministic status=PASS graph=83e339fe2ff8149737cd354c6030a597d44d4b3241666594c1560bbb672b0d8f code_change_plans=0 source_patches=0
+2026-08-11T19:47:20Z REVIEW_URI_PROCESS fixes=unknown_dependency_not_cycle,coexisting_process_versions,protobuf_step_safety_fields product_intent_errors=0
+2026-08-11T19:47:20Z VALIDATION_URI_PROCESS docker_networkless=PASS count=53 first_governance=FAIL reason=todo2code_local_cache cache_removed=true final_governance=PASS errors=0 warnings=0
+2026-08-11T19:47:37Z IMPLEMENTATION_URI_PROCESS commit=dfaf98d7498dad43a75d5601751685fc462217c5 implementation_files=5 runtime_dependencies=0

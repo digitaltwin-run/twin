@@ -26,3 +26,12 @@
 - Accepted a pre-release scope revision to standardize canonical URI
   capabilities, capability discovery/resolution and multi-step URI Processes
   based on the latest `digitaltwin-run` service, persona and scenario twins.
+- Added canonical URI ownership, reviewed provider bindings, typed fail-closed
+  resolution gaps and capability-map hash pinning to the profile, protobuf and
+  generated conformance contract.
+- Added immutable coexisting process revisions, acyclic dependencies, bounded
+  timeout/retry and failure policy, per-step idempotency/receipts, explicit
+  compensation, human-task states and replay-safe authority boundaries.
+- Expanded the conformance suite from 30 to 53 tests. Host and networkless
+  Docker runs pass; todo2code deterministic review proposes no code change,
+  while required-LLM remains correctly unavailable without fallback.

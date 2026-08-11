@@ -61,6 +61,23 @@ in the core while treating CLI, shell, REST and MCP as adapters.
   implementation head.
 - Inventoried the latest URI-oriented `digitaltwin-run` projects read-only and
   accepted the user's explicit scope expansion before changing the contract.
+- Implemented the URI Process revision in the same five approved files at
+  `dfaf98d7498dad43a75d5601751685fc462217c5`: canonical URI capability
+  ownership, reviewed provider resolution, typed gaps, immutable coexisting
+  process revisions, bounded DAG execution, receipts, human tasks and
+  replay/authority separation.
+- Corrected three review findings before publication: unknown dependencies no
+  longer masquerade as graph cycles, multiple immutable versions of one
+  process may coexist, and protobuf steps carry capability/provider plus
+  idempotency/receipt requirements.
+- Verified 53 host and networkless-container tests, reference-profile
+  validation, JSON/protobuf contract checks and governance with exactly five
+  implementation files and zero runtime dependencies.
+- Re-ran todo2code LLM-first on the final diff. Required-LLM failed closed with
+  `LLM_UNAVAILABLE` because the provider weekly limit remains exhausted. The
+  separately labelled deterministic control succeeded at graph
+  `83e339fe2ff8149737cd354c6030a597d44d4b3241666594c1560bbb672b0d8f`
+  and generated zero code-change plans and zero source patches.
 
 ## URI Process revision plan
 
@@ -76,11 +93,14 @@ in the core while treating CLI, shell, REST and MCP as adapters.
 
 ## Unfinished work
 
-- Implement and validate the URI Process revision, then obtain independent
-  trusted review; merge remains an external authorization gate.
+- Publish the revision to pull request #1 and obtain independent trusted
+  review; merge remains an external authorization gate.
 
 ## Blockers
 
 - None inside the recorded intent; proceed without a second confirmation.
+- Semantic LLM review is externally unavailable because the provider weekly
+  limit is exhausted; this was kept fail-closed and was not relabelled as a
+  successful LLM result.
 - New authority remains required for destructive action, secret access, new
   external coordination, material objective expansion and trusted merge.
