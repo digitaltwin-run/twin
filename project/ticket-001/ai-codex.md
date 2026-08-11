@@ -53,11 +53,13 @@ in the core while treating CLI, shell, REST and MCP as adapters.
   no code-change plan; remaining review items are ticket-header/risk prose,
   future publication work and the already committed bootstrap changelog rather
   than a contradictory product intention.
+- Published branch `ticket/001-twin-standard-v1` and opened pull request #1.
+  Linux/container test and Windows governance checks passed on the published
+  implementation head.
 
 ## Unfinished work
 
-- Run final host, networkless-container and governance validation.
-- Push the ticket branch, open a PR and verify required checks.
+- Independent trusted review and merge remain external authorization gates.
 
 ## Blockers
 
