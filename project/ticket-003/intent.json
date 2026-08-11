@@ -58,11 +58,18 @@
     "runtimeDependencies": [],
     "validation": [
       {
-        "criterion": "AC-01/AC-02",
+        "criterion": "AC-01",
         "commands": [
-          "rg -n 'actions/(checkout|setup-python)@' .github/workflows/ci.yml"
+          "rg -n 'actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1' .github/workflows/ci.yml"
         ],
-        "evidence": "Every twin-owned checkout and setup-python occurrence resolves to the declared Node 24 exact commit"
+        "evidence": "Every twin-owned checkout occurrence resolves to the declared Node 24 exact commit"
+      },
+      {
+        "criterion": "AC-02",
+        "commands": [
+          "rg -n 'actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97' .github/workflows/ci.yml"
+        ],
+        "evidence": "Every twin-owned setup-python occurrence resolves to the declared Node 24 exact commit"
       },
       {
         "criterion": "AC-03",

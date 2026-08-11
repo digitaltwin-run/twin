@@ -1,3 +1,6 @@
 2026-08-11T23:53:53Z AUTH SESSION_EXECUTION_AUTHORIZATION source=user_continue_autonomously scope=ticket-003
 2026-08-11T23:53:53Z OBSERVED hosted_ci=PASS warning=NODE20_DEPRECATED affected=twin-owned-checkout,twin-owned-setup-python
 2026-08-11T23:53:53Z PLAN accepted_base=96f9c215f1b69731f8cdb13d871b58f83f0a5ab2 workstream=infrastructure implementation_files=1 components=1 dependencies=0 rollback=single_commit
+2026-08-11T23:55:51Z IMPLEMENTATION file=.github/workflows/ci.yml checkout=actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 setup_python=actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 changed_revision_lines=4
+2026-08-11T23:55:51Z VALIDATION workflow_yaml=PASS governance_json=PASS host_unittest=PASS count=58 docker_networkless=PASS count=58 implementation_files=1 dependencies=0
+2026-08-11T23:55:51Z GOVERNANCE status=FAIL code=GOV-INTENT-002 reason=combined_validation_criterion action=SPLIT_AC01_AC02 publication=STOPPED

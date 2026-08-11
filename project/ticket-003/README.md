@@ -3,7 +3,7 @@
 - **ID**: ticket-003
 - **Owner**: unresolved:human
 - **Status**: IN_PROGRESS
-- **Workflow state**: EDIT
+- **Workflow state**: VALIDATION
 - **Created**: 2026-08-11
 
 ## Goal and scope
@@ -16,15 +16,15 @@ governance reference. Warnings emitted inside the separately pinned
 
 ## Acceptance criteria
 
-- [ ] AC-01: Every twin-owned checkout step uses exact
+- [x] AC-01: Every twin-owned checkout step uses exact
   `actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1` (v7.0.1,
   Node 24).
-- [ ] AC-02: Every twin-owned Python setup step uses exact
+- [x] AC-02: Every twin-owned Python setup step uses exact
   `actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97` (v7.0.0,
   Node 24).
-- [ ] AC-03: Workflow events, permissions, exact-revision checkout inputs,
+- [x] AC-03: Workflow events, permissions, exact-revision checkout inputs,
   governance base selection and Linux/Windows commands remain unchanged.
-- [ ] AC-04: Host tests, YAML/JSON validation, a networkless Docker run and
+- [x] AC-04: Host tests, YAML/JSON validation, a networkless Docker run and
   governance pass with one implementation file and no dependency change.
 - [ ] AC-05: Published push and pull-request jobs pass on the exact head and
   no longer attach the Node 20 deprecation annotation to the twin-owned `test`

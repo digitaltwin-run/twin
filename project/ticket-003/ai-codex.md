@@ -37,6 +37,14 @@ already verified in `subactor/validator-agent`.
   from the request to execute this work.
 - Recorded the active hosted deprecation warning, immutable replacement pins,
   one-file scope and rollback before implementation.
+- Replaced two checkout and two setup-python revisions with the declared exact
+  Node 24 commits. A zero-context diff confirms that no workflow key, input,
+  command or job name changed.
+- Passed workflow YAML and governance JSON parsing, 58 host tests and 58 tests
+  in the pinned networkless container with no dependency change.
+- The first governance run rejected the combined validation identifier
+  `AC-01/AC-02`; publication stayed stopped while the intent evidence was split
+  into separately valid AC-01 and AC-02 records.
 
 ## Blockers
 
