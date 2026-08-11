@@ -54,9 +54,32 @@ stale-base failure beside a green PR run.
   Linux `test` and `windows-governance`. This is the direct branch-push proof
   that an incremental ticket head no longer produces a false stale-base
   failure.
+- Repeated the proof on final implementation head
+  `18556808ec5ebcf15b9fcf077b3402fc14e33a0a`: push run `31546225530` and
+  pull-request run `31546228799` both passed the Linux and Windows jobs.
+- Completed todo2code required-LLM audit `20260811T232622Z-e5a6170e` on the
+  final head. Markdown and documentation extraction used GLM 5.2;
+  communication analysis used GPT-5.4. Every required LLM stage succeeded
+  without degradation or stage warnings. Mechanically proposed follow-ups
+  were limited to declared backlog and misclassified commands or constraints;
+  no product defect remained in ticket-002.
+- Validator run `31546279179` approved the exact final head after two GLM 5.2
+  diff chunks with no advisory findings. The resulting trusted App review was
+  bound to that head, and review-triggered run `31546390489` passed protected
+  governance plus both required jobs.
+- Merged pull request #3 as
+  `4394bd715bec4629b385d5d81324ab16bdf440ee`, deleted the remote ticket
+  branch, and observed post-merge run `31546765474` pass Linux, Windows and
+  default-branch governance.
+
+## Unfinished work
+
+- None for ticket-002. Language adapters, persistent event-store suites and
+  hosted-action runtime maintenance remain explicit, separately governed
+  follow-up work.
 
 ## Blockers
 
-- None inside the recorded intent; proceed without a second confirmation.
-- New authority remains required for destructive action, secret access, new
-  external coordination, material objective expansion and trusted merge.
+- None. The bounded repair is merged and verified on `main`.
+- Future destructive action, secret access, external coordination, material
+  objective expansion or trusted merge still requires its own authority.

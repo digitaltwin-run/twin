@@ -17,3 +17,12 @@
 - Verified the repaired branch-push path on exact head `4ed6e44` in hosted run
   `31546044854`: Linux and Windows required jobs both passed without a false
   `GOV-BASE-001`.
+- Revalidated final implementation head `1855680` through successful push and
+  pull-request runs, then completed a non-degraded required-LLM todo2code audit
+  using GLM 5.2 for documentation and GPT-5.4 for communication.
+- Obtained exact-head Validator approval with no advisory findings and passed
+  the review-triggered protected governance run.
+- Merged protected PR #3 as `4394bd7`, removed its remote ticket branch, and
+  passed the complete post-merge workflow on `main`.
+- Closed ticket-002 as `DONE / DONE`; unrelated backlog remains explicit in
+  the root roadmap.

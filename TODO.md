@@ -5,7 +5,7 @@
 - [x] Define Twin Standard v1 and generate a portable all-traits reference
   bundle with protobuf-backed CLI, shell, REST and MCP mappings over CQRS,
   Event Sourcing, canonical URI capabilities and replay-safe URI Processes.
-- [ ] [`ticket-002`](project/ticket-002/README.md): resolve ticket-branch push
+- [x] [`ticket-002`](project/ticket-002/README.md): resolve ticket-branch push
   governance against the accepted `main` merge base so incremental pushes do
   not report false stale-base failures beside authoritative PR checks.
 
