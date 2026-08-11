@@ -45,6 +45,10 @@ stale-base failure beside a green PR run.
 - Passed 58 host tests, Python compilation, JSON/YAML parsing, structural
   Linux/Windows workflow assertions, and 58 tests in the pinned networkless
   container before publication.
+- The first post-implementation governance run correctly rejected the ticket
+  because its scaffold lacked a bounded delivery contract. Publication stayed
+  stopped while the accepted base, XS budgets, architecture, rollback, and
+  validation evidence were added to `intent.json`.
 
 ## Blockers
 

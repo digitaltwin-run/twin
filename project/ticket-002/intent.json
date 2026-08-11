@@ -18,5 +18,76 @@
   "stacks": ["github-actions", "bash", "powershell"],
   "dependsOn": [],
   "conflictsWith": [],
-  "integrationTicket": null
+  "integrationTicket": null,
+  "delivery": {
+    "acceptedBaseSha": "a8aa834a011a355bb32784f26fca4c07acbf3645",
+    "targetBranch": "main",
+    "outcome": "Non-default branch pushes validate against their merge base with origin/main while pull-request and review events remain bound to GitHub's exact event base and head SHAs",
+    "nonGoals": [
+      "No change to the adopted governance package or its rules",
+      "No change to application, protobuf, profile, or generated bundle contracts",
+      "No weakening or removal of required Linux or Windows checks",
+      "No public interface, dependency, persistent data, or secret change"
+    ],
+    "complexity": "XS",
+    "estimatedMinutes": 20,
+    "budgets": {
+      "maxImplementationFiles": 1,
+      "maxAffectedComponents": 1,
+      "maxPublicInterfaceChanges": 0,
+      "maxRuntimeDependencies": 0
+    },
+    "architecture": {
+      "status": "accepted",
+      "decision": "Select governance bases by event semantics in the existing workflow: exact event SHAs for pull-request contexts and a freshly fetched default-branch merge base for other non-default events, implemented symmetrically in Bash and PowerShell",
+      "components": [
+        {
+          "name": "twin-ci-governance",
+          "paths": [".github/workflows/ci.yml"]
+        }
+      ],
+      "responsibilityChanges": false,
+      "interfaceChanges": [],
+      "dataChanges": [],
+      "ui": {
+        "impact": "none",
+        "states": [],
+        "evidence": []
+      },
+      "rollback": "Revert the single workflow implementation commit; no application or persistent data migration exists"
+    },
+    "runtimeDependencies": [],
+    "validation": [
+      {
+        "criterion": "AC-01",
+        "commands": ["rg -n 'EVENT_NAME|DEFAULT_BRANCH|merge-base' .github/workflows/ci.yml"],
+        "evidence": "Bash and PowerShell non-PR paths fetch the default branch and derive the merge base"
+      },
+      {
+        "criterion": "AC-02",
+        "commands": ["python3 -c 'import pathlib,yaml; yaml.safe_load(pathlib.Path(\".github/workflows/ci.yml\").read_text())'"],
+        "evidence": "Both PR-context paths retain and validate the exact event base SHA"
+      },
+      {
+        "criterion": "AC-03",
+        "commands": ["./project/governance-check.sh --actor agent --changed-file project/TICKETS.md"],
+        "evidence": "The default-branch changed-file governance path remains unchanged"
+      },
+      {
+        "criterion": "AC-04",
+        "commands": [
+          "PYTHONPATH=src python3 -m unittest discover -s tests -v",
+          "docker build -t twin-ci .",
+          "docker run --rm --network none twin-ci",
+          "./project/governance-check.sh --actor agent --base a8aa834a011a355bb32784f26fca4c07acbf3645 --head HEAD"
+        ],
+        "evidence": "Host, networkless Docker, workflow syntax, and bounded governance checks pass"
+      },
+      {
+        "criterion": "AC-05",
+        "commands": ["Verify protected push and pull-request checks on the published exact head"],
+        "evidence": "Hosted checks must prove the ticket push no longer uses the previous branch commit as base"
+      }
+    ]
+  }
 }

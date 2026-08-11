@@ -11,3 +11,5 @@
   exact pull-request event SHAs and the default-branch changed-file path.
 - Passed 58 host and networkless-container tests plus workflow syntax and
   structural parity checks.
+- Added the required XS delivery contract after the first governance run
+  failed closed on `GOV-DELIVERY-001`; no publication occurred before repair.
