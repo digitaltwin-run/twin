@@ -15,3 +15,6 @@
   identifier, then split its evidence into valid AC-01 and AC-02 records.
 - Recorded todo2code required-LLM as unavailable at the provider boundary; no
   deterministic fallback was presented as semantic LLM evidence.
+- Verified the published exact head in successful push and pull-request runs;
+  all four twin-owned Linux/Windows job executions have zero Check Run
+  annotations and zero Node 20 deprecation messages.

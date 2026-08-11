@@ -6,3 +6,5 @@
 2026-08-11T23:55:51Z GOVERNANCE status=FAIL code=GOV-INTENT-002 reason=combined_validation_criterion action=SPLIT_AC01_AC02 publication=STOPPED
 2026-08-11T23:56:20Z GOVERNANCE status=PASS errors=0 warnings=0 head=45cecfc55cfd8b354bbfaeee4d90e7750112fea0
 2026-08-11T23:56:20Z TODO2CODE mode=require-llm status=LLM_UNAVAILABLE stage=markdown reason=provider_weekly_limit no_fallback=true success_manifest=false
+2026-08-11T23:57:18Z PUBLICATION kind=branch_push head=4a6e4932210c61f73bbe92fc0a16e5ee5b37ba46 push_run=31548424492 pr=5 pr_run=31548428896
+2026-08-11T23:58:00Z HOSTED_VALIDATION head=4a6e4932210c61f73bbe92fc0a16e5ee5b37ba46 push_test=PASS push_windows=PASS pr_test=PASS pr_windows=PASS annotations=0 node20_annotations=0

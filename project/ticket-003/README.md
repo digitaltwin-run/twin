@@ -3,7 +3,7 @@
 - **ID**: ticket-003
 - **Owner**: unresolved:human
 - **Status**: IN_PROGRESS
-- **Workflow state**: VALIDATION
+- **Workflow state**: PUBLICATION
 - **Created**: 2026-08-11
 
 ## Goal and scope
@@ -26,9 +26,14 @@ governance reference. Warnings emitted inside the separately pinned
   governance base selection and Linux/Windows commands remain unchanged.
 - [x] AC-04: Host tests, YAML/JSON validation, a networkless Docker run and
   governance pass with one implementation file and no dependency change.
-- [ ] AC-05: Published push and pull-request jobs pass on the exact head and
+- [x] AC-05: Published push and pull-request jobs pass on the exact head and
   no longer attach the Node 20 deprecation annotation to the twin-owned `test`
   or `windows-governance` jobs.
+
+  Evidence: push run `31548424492` and pull-request run `31548428896` passed
+  both jobs on exact head `4a6e4932210c61f73bbe92fc0a16e5ee5b37ba46`.
+  The GitHub Check Runs annotations API reported zero annotations and zero
+  Node 20 messages for each of the four twin-owned job executions.
 
 ## Risks and rollback
 

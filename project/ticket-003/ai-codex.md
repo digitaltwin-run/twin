@@ -50,6 +50,10 @@ already verified in `subactor/validator-agent`.
   the weekly key limit was exhausted; the run stayed fail-closed, emitted no
   success manifest and was not replaced or relabelled as deterministic LLM
   evidence.
+- Published exact head `4a6e4932210c61f73bbe92fc0a16e5ee5b37ba46`.
+  Push run `31548424492` and pull-request run `31548428896` passed Linux and
+  Windows. Direct Check Runs API inspection found zero annotations, including
+  zero Node 20 deprecation messages, on all four twin-owned job executions.
 
 ## Blockers
 
