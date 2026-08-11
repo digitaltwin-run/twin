@@ -78,6 +78,23 @@ in the core while treating CLI, shell, REST and MCP as adapters.
   separately labelled deterministic control succeeded at graph
   `83e339fe2ff8149737cd354c6030a597d44d4b3241666594c1560bbb672b0d8f`
   and generated zero code-change plans and zero source patches.
+- Used the repository-scoped Validator on exact head
+  `5b3e6a4db68d21b56d4dc33863d66fa038995f38`. Its deterministic checks
+  approved, while its 13-chunk GLM review exposed a real protobuf parsing
+  limitation among otherwise non-actionable advisory findings; merge was
+  stopped before publication.
+- Replaced regex-only message/service body extraction with quote-aware,
+  balanced-brace block extraction. Nested declarations now have independent
+  field-number and secret checks, required fields remain scoped to their
+  top-level messages, and non-canonical secret casing is rejected.
+- Expanded the suite from 53 to 58 tests. Host and networkless Docker runs,
+  reference validation, Python compilation, governance and the authoritative
+  pull-request CI run pass on implementation head
+  `747367fd201556cd11c7e19199660b190f88761b`.
+- Re-ran current todo2code LLM-first; it failed closed on the local provider's
+  weekly limit. The separately labelled deterministic comparison improved
+  coverage, removed one gap, introduced no blocking or review-required delta
+  and generated zero code-change plans.
 
 ## URI Process revision plan
 

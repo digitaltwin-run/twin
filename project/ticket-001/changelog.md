@@ -38,3 +38,12 @@
 - Recorded a separate follow-up for branch-push CI: the authoritative
   pull-request run passes against `main`, while an incremental push run can use
   the prior branch head and report a false stale-base failure.
+- Triaged a 13-chunk Validator LLM review before merge and accepted its
+  protobuf parser finding while rejecting syntax, circular-governance and
+  redacted-input false positives with direct evidence.
+- Replaced flat regex protobuf body matching with dependency-free,
+  quote-aware balanced-block extraction. Nested declarations cannot hide
+  required fields, cross-contaminate field numbers or evade secret-field
+  rejection through casing.
+- Expanded the conformance suite from 53 to 58 tests; host, networkless Docker,
+  governance and authoritative pull-request CI pass on the hardened parser.

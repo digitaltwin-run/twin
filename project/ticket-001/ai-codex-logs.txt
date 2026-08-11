@@ -38,3 +38,9 @@
 2026-08-11T19:47:37Z IMPLEMENTATION_URI_PROCESS commit=dfaf98d7498dad43a75d5601751685fc462217c5 implementation_files=5 runtime_dependencies=0
 2026-08-11T19:49:34Z CI_URI_PROCESS event=pull_request head=48e6fa564e2b80646e5d140ffb434918188e0cba test=PASS docker_networkless=PASS windows_governance=PASS
 2026-08-11T19:49:34Z CI_PUSH_BASE_GAP event=push head=48e6fa564e2b80646e5d140ffb434918188e0cba status=FAIL code=GOV-BASE-001 event_base=4f7267058f7ce38199e3bcf8d1f1526f980f78d2 disposition=FOLLOWUP_NO_PRODUCT_FAILURE
+2026-08-11T20:56:42Z VALIDATOR_DIRECT_PR run=31535271222 head=5b3e6a4db68d21b56d4dc33863d66fa038995f38 deterministic=APPROVED llm_model=openrouter/z-ai/glm-5.2 llm_chunks=13 llm_verdict=BLOCK merge=STOPPED_FOR_TRIAGE
+2026-08-11T21:00:00Z VALIDATOR_TRIAGE accepted=nested_protobuf_scope_and_secret_identifier_casing rejected=python_syntax,circular_governance_skip,redacted_environment_chunk action=FIX_BEFORE_MERGE
+2026-08-11T21:02:33Z TODO2CODE_PROTO mode=require-llm tool=2380dd8b2f7d4bdc594613701eb770d7e251d0b3 status=LLM_UNAVAILABLE reason=provider_weekly_limit no_fallback=true
+2026-08-11T21:02:39Z TODO2CODE_PROTO_CONTROL mode=deterministic status=PASS direction=improved implementation_coverage_delta=0.003 documented_code_coverage_delta=0.0909 gaps_delta=-1 blocking_delta=0 review_required_delta=0 code_change_plans=0
+2026-08-11T21:03:00Z VALIDATION_PROTO host_unittest=PASS count=58 profile_validation=PASS py_compile=PASS docker_networkless=PASS governance=PASS errors=0 warnings=0
+2026-08-11T21:04:10Z CI_PROTO event=pull_request run=31536037700 head=747367fd201556cd11c7e19199660b190f88761b test=PASS docker_networkless=PASS windows_governance=PASS
