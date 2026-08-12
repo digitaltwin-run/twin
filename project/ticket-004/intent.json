@@ -28,7 +28,7 @@
       "No workflow job, event, permission, condition, command or Python change",
       "No application, interface, dependency, persistent data or secret change"
     ],
-    "complexity": "XS",
+    "complexity": "S",
     "estimatedMinutes": 15,
     "budgets": {
       "maxImplementationFiles": 1,

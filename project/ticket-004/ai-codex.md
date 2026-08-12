@@ -30,6 +30,9 @@ its `standard-ref`; they must change atomically.
   from the request to execute this work.
 - Verified central merge `268311b` passed Linux and Windows and pins
   github-script v8 `ed597411...`, whose official metadata declares Node 24.
+- Host validation retained all 58 passing tests. The first governance run
+  correctly rejected a 15-minute estimate labeled `XS` (maximum 10); corrected
+  the declaration to allowed class `S` without widening scope or budget.
 
 ## Blockers
 

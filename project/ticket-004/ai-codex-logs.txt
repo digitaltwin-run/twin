@@ -7,3 +7,12 @@ $ placeholder scan project/ticket-004
 placeholders: none
 $ git diff --check
 PASS
+
+2026-08-12 first implementation validation
+$ PYTHONPATH=src python3 -m unittest discover -s tests -v
+Ran 58 tests in 0.722s
+OK
+$ ./project/governance-check.sh --actor agent --base b20adc8075b54de9aede082bd2a8d9d1f60cadd9 --head HEAD
+GOV-DELIVERY-001 ERROR: Ticket ticket-004 exceeds the approved delivery class or policy budget.
+Cause: estimatedMinutes=15 exceeded the XS maximum of 10.
+Correction: retain estimatedMinutes=15 and declare allowed complexity S; no scope or budget increase.
