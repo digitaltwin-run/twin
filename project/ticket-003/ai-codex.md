@@ -54,12 +54,30 @@ already verified in `subactor/validator-agent`.
   Push run `31548424492` and pull-request run `31548428896` passed Linux and
   Windows. Direct Check Runs API inspection found zero annotations, including
   zero Node 20 deprecation messages, on all four twin-owned job executions.
+- Repeated push and pull-request validation on final head
+  `0f7dda34f4e7733ce52422a17e3c78ee25e2d20b` in runs `31548512252` and
+  `31548514398`.
+- Validator run `31548551075` approved the exact final head after two GLM 5.2
+  diff chunks with advisory verdict `APPROVE` and zero findings. The trusted
+  App review remained bound to that head, and review-triggered run
+  `31548660459` passed protected governance plus both required jobs.
+- Merged pull request #5 as
+  `e818d186f11b5b5ab95dc6d1a8074314142ef354`, deleted the remote ticket
+  branch, and observed post-merge run `31548715935` pass Linux, Windows and
+  default-branch governance. Its only Node 20 annotation belongs to the pinned
+  reusable `wellmanifest/new-project` workflow, outside the twin-owned jobs and
+  this ticket's declared scope.
+
+## Unfinished work
+
+- None for ticket-003. Upgrading the separately owned reusable governance
+  workflow remains an explicit cross-repository maintenance task.
 
 ## Blockers
 
-- None inside the recorded intent; proceed without a second confirmation.
-- Local todo2code semantic review is unavailable until its provider limit
-  resets; independent exact-head Validator LLM review remains mandatory before
+- None. The bounded maintenance change is merged and verified on `main`.
+- Local todo2code stayed fail-closed when its provider limit was exhausted;
+  independent exact-head Validator LLM review completed successfully before
   merge.
-- New authority remains required for destructive action, secret access, new
-  external coordination, material objective expansion and trusted merge.
+- Future destructive action, secret access, external coordination, material
+  objective expansion or trusted merge still requires its own authority.
