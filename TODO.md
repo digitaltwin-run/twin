@@ -2,10 +2,12 @@
 
 ## Active
 
-- [ ] [`ticket-004`](project/ticket-004/README.md): adopt the approved
+- [x] [`ticket-004`](project/ticket-004/README.md): adopt the approved
   Node.js 24 reusable governance workflow at one immutable standard SHA without
   changing the separately pinned local governance package. Status:
-  `IN_PROGRESS / VALIDATION`; classification: `SERVICE / P1 / health`.
+  `DONE / DONE`; classification: `SERVICE / P1 / health`; PR #7 and post-merge
+  Linux/Windows/reusable governance passed with zero remaining Node.js 20
+  warning in the owned execution path.
 
 - [x] Define Twin Standard v1 and generate a portable all-traits reference
   bundle with protobuf-backed CLI, shell, REST and MCP mappings over CQRS,

@@ -2,8 +2,8 @@
 
 - **ID**: ticket-004
 - **Owner**: unresolved:human
-- **Status**: IN_PROGRESS
-- **Workflow state**: VALIDATION
+- **Status**: DONE
+- **Workflow state**: DONE
 - **Created**: 2026-08-12
 
 ## Goal and scope
@@ -49,6 +49,9 @@ governance payload and its lock remain unchanged.
 - Validator run `31550317756` approved exact head `6b41308` after two GLM 5.2
   chunks. Its advisory findings identified this previously missing evidence;
   the implementation itself had no unsafe deterministic finding.
+- Final Validator run `31550581104` approved exact head `723c7ea`; advisory GLM
+  verdict was `APPROVE` with no findings. Review governance run `31550676342`
+  and post-merge run `31550714971` both passed.
 
 ## Participants
 

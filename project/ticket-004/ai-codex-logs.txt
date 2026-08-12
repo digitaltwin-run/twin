@@ -54,3 +54,19 @@ deterministic_verdict=APPROVE
 advisory_verdict=REQUEST_CHANGES
 advisory_findings=stale PR body; hosted evidence and acceptance status not yet recorded
 implementation_findings=none
+
+Final Validator run=31550581104 head=723c7eacfa6aa2197e0b64dd45e33cd6b29246cb
+model=openrouter/z-ai/glm-5.2
+chunks=2
+trusted_review=APPROVED
+deterministic_verdict=APPROVE
+advisory_verdict=APPROVE
+advisory_findings=none
+review_governance_run=31550676342 PASS
+
+merge PR=7 commit=d4e435e6f25f514c075f8845c920ccb0d06705dd
+merged_branch_deleted=true
+postmerge_run=31550714971
+test=PASS
+windows-governance=PASS
+governance/enforce=PASS
