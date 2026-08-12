@@ -287,6 +287,166 @@ message UriProcessRun {
   google.protobuf.Timestamp finished_at = 14;
 }
 
+message ContractSourceRef {
+  string source_id = 1;
+  string role = 2;
+  string repository = 3;
+  string revision = 4;
+  string artifact = 5;
+  string digest_sha256 = 6;
+}
+
+message ModuleContractRef {
+  string module_id = 1;
+  string repository = 2;
+  string revision = 3;
+  string contract_uri = 4;
+  string contract_version = 5;
+  string contract_digest_sha256 = 6;
+  string layer = 7;
+  string owner = 8;
+  bool state_writer = 9;
+  repeated string depends_on = 10;
+}
+
+message LifecycleBlueprintRef {
+  string blueprint_id = 1;
+  string version = 2;
+  string definition_uri = 3;
+  string definition_digest_sha256 = 4;
+  repeated string stage_ids = 5;
+  bool immutable = 6;
+}
+
+enum LifecycleTransitionStatus {
+  LIFECYCLE_TRANSITION_STATUS_UNSPECIFIED = 0;
+  LIFECYCLE_TRANSITION_STATUS_REQUESTED = 1;
+  LIFECYCLE_TRANSITION_STATUS_APPROVED = 2;
+  LIFECYCLE_TRANSITION_STATUS_BLOCKED = 3;
+  LIFECYCLE_TRANSITION_STATUS_REJECTED = 4;
+}
+
+message LifecycleTransitionRecord {
+  string transition_id = 1;
+  LifecycleBlueprintRef blueprint = 2;
+  string from_stage = 3;
+  string to_stage = 4;
+  string base_revision = 5;
+  LifecycleTransitionStatus status = 6;
+  repeated EvidenceRef evidence = 7;
+  repeated string unmet_criteria = 8;
+  ActorRef requested_by = 9;
+  ActorRef approved_by = 10;
+  string gate_decision_id = 11;
+  google.protobuf.Timestamp recorded_at = 12;
+}
+
+enum EvolutionMode {
+  EVOLUTION_MODE_UNSPECIFIED = 0;
+  EVOLUTION_MODE_ANALYSIS_ONLY = 1;
+  EVOLUTION_MODE_CHANGE_PLAN = 2;
+  EVOLUTION_MODE_AUTO_APPLY_SAFE = 3;
+}
+
+enum EvolutionCandidateStatus {
+  EVOLUTION_CANDIDATE_STATUS_UNSPECIFIED = 0;
+  EVOLUTION_CANDIDATE_STATUS_PROPOSED = 1;
+  EVOLUTION_CANDIDATE_STATUS_SHORTLISTED = 2;
+  EVOLUTION_CANDIDATE_STATUS_SELECTED = 3;
+  EVOLUTION_CANDIDATE_STATUS_REJECTED = 4;
+  EVOLUTION_CANDIDATE_STATUS_REALIZED = 5;
+  EVOLUTION_CANDIDATE_STATUS_VERIFIED = 6;
+}
+
+enum EvolutionRunStatus {
+  EVOLUTION_RUN_STATUS_UNSPECIFIED = 0;
+  EVOLUTION_RUN_STATUS_DRAFT = 1;
+  EVOLUTION_RUN_STATUS_COMPILED = 2;
+  EVOLUTION_RUN_STATUS_RUNNING = 3;
+  EVOLUTION_RUN_STATUS_BLOCKED = 4;
+  EVOLUTION_RUN_STATUS_AWAITING_APPROVAL = 5;
+  EVOLUTION_RUN_STATUS_COMPLETED = 6;
+  EVOLUTION_RUN_STATUS_FAILED = 7;
+  EVOLUTION_RUN_STATUS_CANCELLED = 8;
+}
+
+enum EvolutionQueueState {
+  EVOLUTION_QUEUE_STATE_UNSPECIFIED = 0;
+  EVOLUTION_QUEUE_STATE_QUEUED = 1;
+  EVOLUTION_QUEUE_STATE_APPLYING = 2;
+  EVOLUTION_QUEUE_STATE_REGENERATING = 3;
+  EVOLUTION_QUEUE_STATE_VERIFYING = 4;
+  EVOLUTION_QUEUE_STATE_APPLIED = 5;
+  EVOLUTION_QUEUE_STATE_REVERTED = 6;
+  EVOLUTION_QUEUE_STATE_FAILED = 7;
+}
+
+message EvolutionChange {
+  string operation_id = 1;
+  string kind = 2;
+  string target_uri = 3;
+  string module_id = 4;
+  google.protobuf.Any arguments = 5;
+  bool reversible = 6;
+  repeated string validation_steps = 7;
+}
+
+message EvolutionCandidate {
+  string candidate_id = 1;
+  uint32 generation = 2;
+  repeated string parent_candidate_ids = 3;
+  EvolutionCandidateStatus status = 4;
+  repeated string methods = 5;
+  repeated EvolutionChange proposed_changes = 6;
+  repeated string module_ids = 7;
+  string evaluation_digest_sha256 = 8;
+  repeated EvidenceRef evidence = 9;
+}
+
+message EvolutionPlan {
+  string plan_id = 1;
+  string run_id = 2;
+  string base_revision = 3;
+  string modularity_graph_digest_sha256 = 4;
+  string lifecycle_transition_id = 5;
+  string lifecycle_stage = 6;
+  uint64 deterministic_seed = 7;
+  EvolutionMode mode = 8;
+  repeated ModuleContractRef module_contracts = 9;
+  repeated EvolutionCandidate candidates = 10;
+  repeated string selected_candidate_ids = 11;
+  string plan_digest_sha256 = 12;
+  bool allowlisted = 13;
+  bool reversible = 14;
+  bool compatibility_validated = 15;
+  repeated ContractSourceRef source_contracts = 16;
+}
+
+message EvolutionQueueItem {
+  string queue_item_id = 1;
+  string plan_id = 2;
+  EvolutionQueueState state = 3;
+  string command_id = 4;
+  string source_event_id = 5;
+  repeated string affected_module_ids = 6;
+  google.protobuf.Timestamp updated_at = 7;
+}
+
+message EvolutionRun {
+  string run_id = 1;
+  string base_revision = 2;
+  string current_revision = 3;
+  string lifecycle_stage = 4;
+  EvolutionRunStatus status = 5;
+  EvolutionMode mode = 6;
+  repeated EvolutionCandidate candidates = 7;
+  repeated string selected_candidate_ids = 8;
+  repeated EvolutionQueueItem change_queue = 9;
+  repeated EvidenceRef evidence = 10;
+  string regenerated_artifact_digest_sha256 = 11;
+  string readback_digest_sha256 = 12;
+}
+
 message ReconcileCommand { CommandEnvelope envelope = 1; }
 message MirrorRefreshCommand { CommandEnvelope envelope = 1; }
 message InvariantEvaluationCommand { CommandEnvelope envelope = 1; }
@@ -323,9 +483,45 @@ message ResolveUriProcessQuery {
 message GetCapabilityMapQuery { QueryEnvelope envelope = 1; }
 message GetUriProcessRunQuery { QueryEnvelope envelope = 1; }
 
+message TransitionLifecycleCommand {
+  CommandEnvelope envelope = 1;
+  LifecycleTransitionRecord transition = 2;
+}
+message PlanEvolutionCommand {
+  CommandEnvelope envelope = 1;
+  EvolutionPlan plan = 2;
+}
+message ApplyEvolutionCommand {
+  CommandEnvelope envelope = 1;
+  string plan_id = 2;
+  string expected_base_revision = 3;
+  string lifecycle_transition_id = 4;
+  repeated string selected_candidate_ids = 5;
+  string expected_plan_digest_sha256 = 6;
+}
+message RevertEvolutionCommand {
+  CommandEnvelope envelope = 1;
+  string applied_event_id = 2;
+  string expected_current_revision = 3;
+  string reason = 4;
+}
+
+message GetLifecycleQuery { QueryEnvelope envelope = 1; }
+message GetEvolutionQuery { QueryEnvelope envelope = 1; }
+
 message TwinView { QueryResult result = 1; }
 message HistoryView { QueryResult result = 1; }
 message HealthView { QueryResult result = 1; }
+message LifecycleView {
+  QueryResult result = 1;
+  LifecycleBlueprintRef blueprint = 2;
+  string current_stage = 3;
+  repeated LifecycleTransitionRecord transitions = 4;
+}
+message EvolutionView {
+  QueryResult result = 1;
+  EvolutionRun run = 2;
+}
 
 message ReconciliationRequested { string target_uri = 1; }
 message MirrorRefreshRequested { string target_uri = 1; }
@@ -338,6 +534,28 @@ message ObservationPublished { Observation observation = 1; }
 message UriProcessStarted { string run_id = 1; string plan_id = 2; }
 message UriProcessStepCompleted { UriStepReceipt step_receipt = 1; }
 message UriProcessCancelled { string run_id = 1; string reason = 2; }
+message LifecycleTransitionRecorded { LifecycleTransitionRecord transition = 1; }
+message EvolutionPlanned { EvolutionPlan plan = 1; }
+message EvolutionApplied {
+  string plan_id = 1;
+  string base_revision = 2;
+  string new_revision = 3;
+  repeated string affected_module_ids = 4;
+  EvolutionQueueItem queue_item = 5;
+  repeated EvidenceRef evidence = 6;
+  string regenerated_artifact_digest_sha256 = 7;
+  string readback_digest_sha256 = 8;
+}
+message EvolutionReverted {
+  string applied_event_id = 1;
+  string reverted_revision = 2;
+  string restored_revision = 3;
+  repeated string affected_module_ids = 4;
+  EvolutionQueueItem queue_item = 5;
+  repeated EvidenceRef evidence = 6;
+  string regenerated_artifact_digest_sha256 = 7;
+  string readback_digest_sha256 = 8;
+}
 
 message AppendEventsRequest {
   string aggregate_id = 1;
@@ -378,12 +596,18 @@ service TwinCommandService {
   rpc EnqueueNotification(NotificationCommand) returns (CommandReceipt);
   rpc AcknowledgeOutbox(OutboxAcknowledgeCommand) returns (CommandReceipt);
   rpc PublishObservation(PublishObservationCommand) returns (CommandReceipt);
+  rpc TransitionLifecycle(TransitionLifecycleCommand) returns (CommandReceipt);
+  rpc PlanEvolution(PlanEvolutionCommand) returns (CommandReceipt);
+  rpc ApplyEvolution(ApplyEvolutionCommand) returns (CommandReceipt);
+  rpc RevertEvolution(RevertEvolutionCommand) returns (CommandReceipt);
 }
 
 service TwinQueryService {
   rpc GetTwin(GetTwinQuery) returns (TwinView);
   rpc GetHistory(GetHistoryQuery) returns (HistoryView);
   rpc GetHealth(GetHealthQuery) returns (HealthView);
+  rpc GetLifecycle(GetLifecycleQuery) returns (LifecycleView);
+  rpc GetEvolution(GetEvolutionQuery) returns (EvolutionView);
 }
 
 service TwinEventStore {

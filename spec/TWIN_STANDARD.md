@@ -7,7 +7,7 @@ This document defines the normative, language-neutral Twin Standard v1.
 Twin implementation conforms only when its profile passes the reference
 validator and its language adapter passes the generated conformance cases.
 
-The standard has three sources of truth:
+The standard has three local sources of truth:
 
 1. `proto/twin/v1/twin.proto` defines wire-neutral semantic types;
 2. a `twin.profile/v1` document selects traits and binds operations;
@@ -15,6 +15,24 @@ The standard has three sources of truth:
 
 Generated output is contract metadata. It MUST NOT contain provider-specific
 application code, credentials, authority grants or executable shell text.
+
+The lifecycle and evolution extension is based on immutable upstream
+contracts, recorded in every conforming profile as repository, full revision,
+artifact path and `sha256:` digest:
+
+- Lifecycle DSL v1 is the normative finite-state, evidence and diagnostic
+  contract (`subactor/lifecycle@f3b8e13eb17128fd0f3ff05ac45fc99c99c470c4`);
+- Modularity Workspace v1 is the normative module graph, ownership, contract,
+  layer and bounded-analysis contract
+  (`subactor/modularity@1c8c94ee7e13ab95af3ab734b9548ebdfc4a7c20`);
+- Twinstudio lifecycle-blueprint and evolution-run schemas are informative
+  implementation evidence for lifecycle tailoring, candidate lineage,
+  event-backed change queues, compensating undo and artifact regeneration
+  (`digitaltwin-run/twinstudio@4183807d9be0bb2a39149ddea494a224286f5dbb`).
+
+The upstream revisions are provenance, not runtime dependencies. Updating a
+revision or digest is an explicit contract review; a moving branch name is not
+an acceptable source reference.
 
 ## 2. Semantic model
 
@@ -146,6 +164,57 @@ Rebuilding a run projection from events is observation only. Replay MUST NOT
 dispatch URI steps, repeat human decisions, decrement quotas or invoke inverse
 routes.
 
+### 2.8 Product lifecycle
+
+A Twin lifecycle blueprint is immutable and versioned. It defines named stages,
+entry and exit criteria, permitted transitions, required artifacts/tests,
+evidence requirements, approver roles and whether a feedback stage is
+repeatable. A lifecycle transition is a command evaluated against the current
+stage and aggregate revision. Unmentioned transitions fail closed.
+
+Every requested transition records its source and target stage, base revision,
+status (`REQUESTED`, `APPROVED`, `BLOCKED` or `REJECTED`), evidence references,
+unmet criteria and approving actor when applicable. Evidence identifiers name
+proof requirements; they are not trusted booleans. A score, proposal,
+simulation, generated artifact or LLM verdict MUST NOT be promoted to verified
+evidence without an observation that authenticates it.
+
+Approval and authority remain separate. An approved gate confirms that the
+declared lifecycle criteria were evaluated; it MUST NOT mint authority for an
+effectful command. Rebuilding lifecycle projections is observe-only and MUST
+NOT approve, reject or advance a stage.
+
+### 2.9 Evolutionary modularity
+
+Evolution is an event-sourced refinement of a Twin, never an in-place rewrite.
+An evolution run pins the aggregate `base_revision`, lifecycle stage,
+deterministic seed and immutable Modularity graph digest. Each candidate has a
+stable ID, zero or more parent candidate IDs, proposed module changes,
+validation steps and a status that keeps `PROPOSED`, `SELECTED`, `REALIZED` and
+`VERIFIED` distinct. Evaluation scores support selection but are not evidence.
+
+Every candidate change MUST be expressed as a typed change plan against module
+IDs and pinned module contract digests. The plan MUST preserve the Modularity
+workspace's ownership, layer direction, acyclic dependency graph, single-writer
+state and bounded analysis-scope rules. Cross-module behavior uses declared
+contracts; applying a plan creates a new immutable revision and never changes a
+pinned historical module revision.
+
+Three execution modes are portable:
+
+- `analysis-only` may produce candidates and evaluations but no change intent;
+- `change-plan` may append a proposed plan but MUST NOT execute its effects;
+- `auto-apply-safe` MAY apply only an explicitly allow-listed plan that is
+  reversible, compatible, lifecycle-approved and externally authorized.
+
+Apply and revert requests enter an event-backed change queue. An apply event
+binds base/new revisions, selected candidates, affected modules, authority,
+receipts and evidence. Revert is a new compensating command/event; it MUST NOT
+delete or rewrite history. After either action, derived artifacts MUST be
+regenerated and read back, and their observed digests/evidence MUST be recorded
+before the new revision is reported as verified. Replay MUST NOT drain the
+queue, apply, revert or regenerate artifacts.
+
 ## 3. Standard traits
 
 An all-traits reference profile contains these independently composable traits:
@@ -161,6 +230,8 @@ An all-traits reference profile contains these independently composable traits:
 | `outbox` | Record and acknowledge external-effect delivery. |
 | `probe` | Publish diagnostic observations and explicit unevaluable state. |
 | `uri-process` | Resolve reviewed URI capabilities and describe replay-safe process runs. |
+| `lifecycle` | Record evidence-gated, authority-neutral lifecycle transitions. |
+| `modular-evolution` | Plan, apply, compensate and verify revision-pinned module evolution. |
 
 A trait references declared operation IDs. Traits do not create an alternative
 transport or bypass CQRS.
@@ -206,6 +277,9 @@ A `twin.profile/v1` JSON object declares:
 - one canonical URI, capability identity and risk class for every operation;
 - URI resolution, process-runtime and human-task safety policy;
 - at least one immutable process definition with an acyclic step graph;
+- immutable Lifecycle, Modularity and Twinstudio source-contract provenance;
+- lifecycle gate/evidence/replay policy and modular evolution policy;
+- revision-pinned candidate lineage, typed module impact and apply/revert rules;
 - complete CLI, shell, REST and MCP bindings;
 - the four deterministic generator outputs.
 
@@ -241,6 +315,10 @@ sorted by code and JSON path. Stable diagnostic families are:
 | `TWIN-URI-001` | A canonical URI is malformed or disagrees with its CQRS effect. |
 | `TWIN-CAPABILITY-001` | Capability resolution, risk or fail-closed gap policy is incomplete. |
 | `TWIN-PROCESS-001` | A process DAG, step execution policy, run state or human-task boundary is unsafe. |
+| `TWIN-SOURCE-001` | An upstream contract lacks immutable revision/content provenance. |
+| `TWIN-LIFECYCLE-001` | Lifecycle gates, evidence, transition states or replay semantics are unsafe. |
+| `TWIN-MODULARITY-001` | Module graph, ownership, contracts, layers or analysis scope are unsafe. |
+| `TWIN-EVOLUTION-001` | Candidate lineage, change modes, apply/revert or verification semantics are unsafe. |
 
 Exit status is `0` for valid/generation complete, `1` for an invalid contract,
 and `2` for usage, unsafe output state or internal I/O failure.
@@ -259,10 +337,12 @@ Exactly these files are emitted:
 - `transport-map.json` — resolved operation and adapter metadata;
 - `conformance.json` — deterministic operation and invariant test cases.
 
-The transport map also contains URI resolution/process policy and definitions.
-Conformance output adds one case per process step plus capability-resolution,
-DAG, replay and actor/authority invariants. It never emits a URI runtime or
-connector implementation.
+The transport map also contains URI resolution/process policy and definitions,
+source-contract provenance, lifecycle policy, modularity rules and evolution
+policy. Conformance output adds one case per process step plus capability,
+lifecycle, modularity, candidate-lineage, apply/revert, regeneration, replay
+and actor/authority invariants. It never emits a URI runtime, evolution engine,
+CAD generator or connector implementation.
 
 Canonical JSON uses UTF-8, lexicographically sorted object keys, two-space
 indentation and one final LF. No clock, host path, random identifier or LLM
