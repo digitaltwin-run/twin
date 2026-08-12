@@ -1,0 +1,9 @@
+2026-08-12 plan validation
+$ python3 -m json.tool project/ticket-004/intent.json
+PASS
+$ jsonschema .governance/intent.schema.json project/ticket-004/intent.json
+intent schema: PASS
+$ placeholder scan project/ticket-004
+placeholders: none
+$ git diff --check
+PASS
