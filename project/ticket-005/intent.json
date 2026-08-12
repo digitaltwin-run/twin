@@ -1,0 +1,93 @@
+{
+  "schema": "new-project.intent/v3",
+  "ticket": "ticket-005",
+  "summary": "Add lifecycle and modular evolutionary Twin contracts",
+  "workstream": "application",
+  "classification": {
+    "kind": "FEATURE",
+    "priority": "P1",
+    "origin": "requested"
+  },
+  "allowedPaths": [
+    "spec/TWIN_STANDARD.md",
+    "profiles/generic-twin.json",
+    "proto/twin/v1/twin.proto",
+    "src/twin_standard.py",
+    "tests/test_twin_standard.py",
+    "project/ticket-005/**",
+    "TODO.md",
+    "project/TICKETS.md"
+  ],
+  "forbiddenPaths": ["project/ticket-*/user-*.md"],
+  "stacks": ["python", "protobuf", "docker"],
+  "dependsOn": [],
+  "conflictsWith": [],
+  "integrationTicket": null,
+  "delivery": {
+    "acceptedBaseSha": "edfb690d4523643d6d2ea410a943b0a4a3ddd078",
+    "targetBranch": "main",
+    "outcome": "Twin Standard describes evidence-gated lifecycle transitions and modular, replay-safe evolution so implementations in any language can plan, apply, revert and verify changes against immutable lifecycle, module and source contracts",
+    "nonGoals": [
+      "No modification of lifecycle, modularity or Twinstudio source repositories",
+      "No automatic execution of unapproved candidate changes or authority granted by an LLM",
+      "No provider-specific runtime, CAD engine, event store or deployment implementation",
+      "No claim that a proposal, score, simulation or generated artifact is verified evidence",
+      "No runtime dependency or language-specific SDK addition"
+    ],
+    "complexity": "S",
+    "estimatedMinutes": 30,
+    "budgets": {
+      "maxImplementationFiles": 5,
+      "maxAffectedComponents": 2,
+      "maxPublicInterfaceChanges": 0,
+      "maxRuntimeDependencies": 0
+    },
+    "architecture": {
+      "status": "accepted",
+      "decision": "Extend the existing protobuf-first profile with immutable lifecycle and modularity references, evidence-gated transitions, revision-pinned candidate lineage, typed module-aware change plans, event-backed apply/revert and mandatory regeneration/readback; use Twinstudio only as pinned implementation evidence and preserve deterministic authority boundaries",
+      "components": [
+        {
+          "name": "twin-lifecycle-evolution-contract",
+          "paths": ["spec/TWIN_STANDARD.md", "profiles/generic-twin.json", "proto/twin/v1/twin.proto"]
+        },
+        {
+          "name": "twin-validator-conformance",
+          "paths": ["src/twin_standard.py", "tests/test_twin_standard.py"]
+        }
+      ],
+      "responsibilityChanges": false,
+      "interfaceChanges": [],
+      "dataChanges": [],
+      "ui": {"impact": "none", "states": [], "evidence": []},
+      "rollback": "Revert ticket-005 before a stable Twin Standard release; existing v1 consumers remain identifiable by the prior profile version and contract hashes"
+    },
+    "runtimeDependencies": [],
+    "validation": [
+      {
+        "criterion": "AC-02",
+        "commands": ["PYTHONPATH=src python3 -m twin_standard validate profiles/generic-twin.json"],
+        "evidence": "The profile pins full revisions and SHA-256 digests for lifecycle, modularity and Twinstudio source contracts"
+      },
+      {
+        "criterion": "AC-03",
+        "commands": ["PYTHONPATH=src python3 -m unittest discover -s tests -v"],
+        "evidence": "Mutation tests reject authority, replay, evidence, lineage, revision, queue, reversibility and module-graph violations with stable TWIN diagnostics"
+      },
+      {
+        "criterion": "AC-04",
+        "commands": ["PYTHONPATH=src python3 -m unittest discover -s tests -v"],
+        "evidence": "Lifecycle/evolution operations resolve to protobuf RPCs and bind exactly once to CLI, safe shell, REST and MCP"
+      },
+      {
+        "criterion": "AC-05",
+        "commands": ["PYTHONPATH=src python3 -m unittest discover -s tests -v", "docker build -t twin-ci .", "docker run --rm --network none twin-ci", "./project/governance-check.sh --actor agent --base edfb690d4523643d6d2ea410a943b0a4a3ddd078 --head HEAD"],
+        "evidence": "Host, networkless Docker and governance pass with five implementation files and no runtime dependencies"
+      },
+      {
+        "criterion": "AC-06",
+        "commands": ["todo2code required-LLM exact-head analysis through SubLLM", "Validator Agent exact-head direct PR review"],
+        "evidence": "Semantic analysis is LLM-backed and advisory while deterministic checks and trusted exact-head review remain authoritative"
+      }
+    ]
+  }
+}

@@ -230,6 +230,167 @@ class TwinStandardTests(unittest.TestCase):
         profile = self._fixture(mutate)
         self.assertIn("TWIN-PROCESS-001", self._codes(profile))
 
+    def test_lifecycle_modularity_and_twinstudio_sources_are_immutable(self):
+        sources = {item["id"]: item for item in self._document()["contractSources"]}
+        self.assertEqual(set(twin_standard.REQUIRED_CONTRACT_SOURCES), set(sources))
+        expected = {
+            "lifecycle-dsl": (
+                "f3b8e13eb17128fd0f3ff05ac45fc99c99c470c4",
+                "sha256:358c6718838a9f8e74cf95db83ffdda5b63b5df6d4369c36682b7583272dc465",
+            ),
+            "modularity-workspace": (
+                "1c8c94ee7e13ab95af3ab734b9548ebdfc4a7c20",
+                "sha256:98db51af5b17e9a480f587f462da52aafd70d8b40ae87d873d7a42fdd4fd5a68",
+            ),
+            "twinstudio-lifecycle-blueprint": (
+                "4183807d9be0bb2a39149ddea494a224286f5dbb",
+                "sha256:15cd979423cc50588720ee8b312cd90950274a155e0db91cd4c9d022c6e32e00",
+            ),
+            "twinstudio-evolution-run": (
+                "4183807d9be0bb2a39149ddea494a224286f5dbb",
+                "sha256:7df0482d8073cce46fd290d85f5ac37f588606cdfaac1933135b96cd026878ec",
+            ),
+            "twinstudio-evolution-dsl": (
+                "4183807d9be0bb2a39149ddea494a224286f5dbb",
+                "sha256:d1d72f779fa137d3997149dc84a8c6bc5dd4a10f335f1149a4fca301694aafa6",
+            ),
+        }
+        self.assertEqual(
+            expected,
+            {source_id: (source["revision"], source["digest"]) for source_id, source in sources.items()},
+        )
+        twinstudio = [source for source in sources.values() if source["id"].startswith("twinstudio-")]
+        self.assertEqual({"4183807d9be0bb2a39149ddea494a224286f5dbb"}, {item["revision"] for item in twinstudio})
+
+    def test_source_contract_rejects_moving_or_unhashed_provenance(self):
+        def mutate(value):
+            value["contractSources"][0]["revision"] = "main"
+            value["contractSources"][1]["digest"] = "98db51af"
+
+        profile = self._fixture(mutate)
+        self.assertIn("TWIN-SOURCE-001", self._codes(profile))
+
+    def test_additional_immutable_source_contract_is_portable(self):
+        def mutate(value):
+            value["contractSources"].append(
+                {
+                    "id": "language-adapter",
+                    "role": "informative",
+                    "repository": "https://example.invalid/twin-adapter",
+                    "revision": "b" * 40,
+                    "artifact": "contracts/adapter.json",
+                    "digest": "sha256:" + "c" * 64,
+                }
+            )
+
+        self.assertEqual([], twin_standard.validate_profile(self._fixture(mutate)))
+
+    def test_twinstudio_evidence_must_use_one_coherent_revision(self):
+        profile = self._fixture(
+            lambda value: value["contractSources"][2].__setitem__(
+                "revision", "a" * 40
+            )
+        )
+        diagnostics = twin_standard.validate_profile(profile)
+        self.assertTrue(
+            any(item.code == "TWIN-SOURCE-001" and "coherent" in item.message for item in diagnostics)
+        )
+
+    def test_lifecycle_requires_evidence_fail_closed_states_and_authority_separation(self):
+        def mutate(value):
+            value["lifecycle"]["transitionEvidenceRequired"] = False
+            value["lifecycle"]["approvalDoesNotGrantAuthority"] = False
+            value["lifecycle"]["transitionStatuses"].remove("BLOCKED")
+
+        codes = self._codes(self._fixture(mutate))
+        self.assertIn("TWIN-LIFECYCLE-001", codes)
+        self.assertIn("TWIN-AUTH-001", codes)
+
+    def test_lifecycle_and_evolution_replay_are_observe_only(self):
+        def mutate(value):
+            value["lifecycle"]["replayExecutesTransitions"] = True
+            value["evolution"]["replayExecutesChanges"] = True
+
+        self.assertIn("TWIN-REPLAY-001", self._codes(self._fixture(mutate)))
+
+    def test_lifecycle_and_evolution_state_sets_fail_closed_on_non_strings(self):
+        def mutate(value):
+            value["lifecycle"]["transitionStatuses"][0] = {"unknown": True}
+            value["evolution"]["modes"][0] = ["analysis-only"]
+
+        codes = self._codes(self._fixture(mutate))
+        self.assertIn("TWIN-LIFECYCLE-001", codes)
+        self.assertIn("TWIN-EVOLUTION-001", codes)
+
+    def test_modularity_preserves_pins_dag_single_writer_and_scope(self):
+        def mutate(value):
+            value["modularity"]["moduleRevisionPinned"] = False
+            value["modularity"]["dependencyGraphAcyclic"] = False
+            value["modularity"]["singleWriterState"] = False
+            value["modularity"]["analysisScopeBounded"] = False
+
+        self.assertIn("TWIN-MODULARITY-001", self._codes(self._fixture(mutate)))
+
+    def test_evolution_keeps_proposals_scores_and_verification_distinct(self):
+        def mutate(value):
+            value["evolution"]["candidateLineageRequired"] = False
+            value["evolution"]["proposalIsEvidence"] = True
+            value["evolution"]["evaluationScoreIsEvidence"] = True
+            value["evolution"]["candidateStatuses"].remove("REALIZED")
+            value["evolution"]["runStatuses"].remove("AWAITING_APPROVAL")
+            value["evolution"]["changeQueueStates"].remove("VERIFYING")
+
+        self.assertIn("TWIN-EVOLUTION-001", self._codes(self._fixture(mutate)))
+
+    def test_auto_apply_safe_is_allowlisted_reversible_compatible_gated_and_authorized(self):
+        def mutate(value):
+            policy = value["evolution"]["autoApplySafe"]
+            for field in list(policy):
+                policy[field] = False
+
+        self.assertIn("TWIN-EVOLUTION-001", self._codes(self._fixture(mutate)))
+
+    def test_apply_revert_require_new_history_and_observed_artifacts(self):
+        def mutate(value):
+            value["evolution"]["newRevisionPerAppliedChange"] = False
+            value["evolution"]["revertIsCompensatingEvent"] = False
+            value["evolution"]["historyRewriteAllowed"] = True
+            value["evolution"]["regenerationAfterApplyOrRevert"] = False
+            value["evolution"]["readbackVerificationRequired"] = False
+
+        self.assertIn("TWIN-EVOLUTION-001", self._codes(self._fixture(mutate)))
+
+    def test_lifecycle_and_evolution_operations_are_portable_and_protobuf_backed(self):
+        expected = {
+            "twin.lifecycle.transition",
+            "twin.lifecycle.get",
+            "twin.evolution.plan",
+            "twin.evolution.apply",
+            "twin.evolution.revert",
+            "twin.evolution.get",
+        }
+        document = self._document()
+        self.assertTrue(expected.issubset({operation["id"] for operation in document["operations"]}))
+        for surface in twin_standard.REQUIRED_SURFACES:
+            bound = {item["operation"] for item in document["transports"][surface]["bindings"]}
+            self.assertTrue(expected.issubset(bound), surface)
+
+    def test_evolution_proto_carries_module_graph_lineage_and_readback(self):
+        def remove_required_fields(text):
+            return text.replace("  string modularity_graph_digest_sha256 = 4;\n", "", 1).replace(
+                "  string readback_digest_sha256 = 8;\n", "", 1
+            )
+
+        self.assertIn("TWIN-PROTO-001", self._codes(self._fixture(proto_mutate=remove_required_fields)))
+
+    def test_evolution_apply_requires_a_typed_rpc(self):
+        profile = self._fixture(
+            proto_mutate=lambda text: text.replace(
+                "  rpc ApplyEvolution(ApplyEvolutionCommand) returns (CommandReceipt);\n", "", 1
+            )
+        )
+        self.assertIn("TWIN-PROTO-001", self._codes(profile))
+
     def test_command_without_events_fails_cqrs(self):
         profile = self._fixture(lambda value: value["operations"][0].__setitem__("emits", []))
         self.assertIn("TWIN-CQRS-001", self._codes(profile))
@@ -451,6 +612,27 @@ class TwinStandardTests(unittest.TestCase):
         self.assertEqual(1, manifest["uriProcessDefinitions"])
         process_cases = [item for item in conformance["cases"] if item["kind"] == "uri-process-step"]
         self.assertEqual(3, len(process_cases))
+
+    def test_generated_bundle_contains_lifecycle_and_modular_evolution_contracts(self):
+        temporary = tempfile.TemporaryDirectory()
+        self.addCleanup(temporary.cleanup)
+        destination = Path(temporary.name) / "bundle"
+        twin_standard.generate_bundle(PROFILE, destination, "typescript")
+        transport = json.loads((destination / "transport-map.json").read_text(encoding="utf-8"))
+        conformance = json.loads((destination / "conformance.json").read_text(encoding="utf-8"))
+        manifest = json.loads((destination / "twin.manifest.json").read_text(encoding="utf-8"))
+        document = self._document()
+        for field in ("contractSources", "lifecycle", "modularity", "evolution"):
+            self.assertEqual(document[field], transport[field])
+        source_cases = [item for item in conformance["cases"] if item["kind"] == "immutable-source-contract"]
+        self.assertEqual(len(document["contractSources"]), len(source_cases))
+        invariant_ids = {item["id"] for item in conformance["cases"] if item["kind"] == "semantic-invariant"}
+        self.assertIn("invariant.lifecycle-approval-is-not-authority", invariant_ids)
+        self.assertIn("invariant.module-contract-revisions-pinned", invariant_ids)
+        self.assertIn("invariant.apply-revert-regenerate-and-readback", invariant_ids)
+        self.assertEqual("1.1.0", manifest["standardVersion"])
+        self.assertEqual(5, manifest["contractSources"])
+        self.assertEqual(4, manifest["evolutionOperations"])
 
     def test_existing_destination_is_never_overwritten(self):
         temporary = tempfile.TemporaryDirectory()

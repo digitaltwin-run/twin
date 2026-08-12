@@ -2,7 +2,7 @@
   "$schema": "https://subactor.dev/twin/profile/v1",
   "schema": "twin.profile/v1",
   "id": "generic-all-traits",
-  "version": 1,
+  "version": 2,
   "description": "Language-neutral reference Twin with every standard trait",
   "aggregate": {
     "type": "GenericTwin",
@@ -68,6 +68,48 @@
       "authorityDecisions": false
     }
   ],
+  "contractSources": [
+    {
+      "id": "lifecycle-dsl",
+      "role": "normative",
+      "repository": "https://github.com/subactor/lifecycle",
+      "revision": "f3b8e13eb17128fd0f3ff05ac45fc99c99c470c4",
+      "artifact": "spec/LIFECYCLE_DSL.md",
+      "digest": "sha256:358c6718838a9f8e74cf95db83ffdda5b63b5df6d4369c36682b7583272dc465"
+    },
+    {
+      "id": "modularity-workspace",
+      "role": "normative",
+      "repository": "https://github.com/subactor/modularity",
+      "revision": "1c8c94ee7e13ab95af3ab734b9548ebdfc4a7c20",
+      "artifact": "docs/schemas/modularity-workspace.schema.v1.json",
+      "digest": "sha256:98db51af5b17e9a480f587f462da52aafd70d8b40ae87d873d7a42fdd4fd5a68"
+    },
+    {
+      "id": "twinstudio-lifecycle-blueprint",
+      "role": "informative",
+      "repository": "https://github.com/digitaltwin-run/twinstudio",
+      "revision": "4183807d9be0bb2a39149ddea494a224286f5dbb",
+      "artifact": "schemas/lifecycle-blueprint.schema.json",
+      "digest": "sha256:15cd979423cc50588720ee8b312cd90950274a155e0db91cd4c9d022c6e32e00"
+    },
+    {
+      "id": "twinstudio-evolution-run",
+      "role": "informative",
+      "repository": "https://github.com/digitaltwin-run/twinstudio",
+      "revision": "4183807d9be0bb2a39149ddea494a224286f5dbb",
+      "artifact": "schemas/evolution-run.schema.json",
+      "digest": "sha256:7df0482d8073cce46fd290d85f5ac37f588606cdfaac1933135b96cd026878ec"
+    },
+    {
+      "id": "twinstudio-evolution-dsl",
+      "role": "informative",
+      "repository": "https://github.com/digitaltwin-run/twinstudio",
+      "revision": "4183807d9be0bb2a39149ddea494a224286f5dbb",
+      "artifact": "docs/18_PROJECT_EVOLUTION_DSL_PL.md",
+      "digest": "sha256:d1d72f779fa137d3997149dc84a8c6bc5dd4a10f335f1149a4fca301694aafa6"
+    }
+  ],
   "uriCapabilities": {
     "routePattern": "scheme://uri-authority/resource[/subresource...]/query|command/action",
     "reviewedBaselineRequired": true,
@@ -111,6 +153,63 @@
     "terminalStates": ["SUCCEEDED", "FAILED", "CANCELLED", "COMPENSATED"],
     "humanTaskStates": ["PENDING", "RESOLVED", "DECLINED", "CANCELLED", "EXPIRED"]
   },
+  "lifecycle": {
+    "blueprintImmutable": true,
+    "definitionVersionRequired": true,
+    "entryExitCriteriaRequired": true,
+    "transitionEvidenceRequired": true,
+    "unmetCriteriaRecorded": true,
+    "approvalIdentityRecorded": true,
+    "approvalDoesNotGrantAuthority": true,
+    "unmentionedTransitionsFailClosed": true,
+    "repeatableFeedbackStagesAllowed": true,
+    "transitionsEventBacked": true,
+    "replayExecutesTransitions": false,
+    "transitionStatuses": ["REQUESTED", "APPROVED", "BLOCKED", "REJECTED"]
+  },
+  "modularity": {
+    "workspaceSchema": "subactor.modularity/workspace/v1",
+    "graphDigestRequired": true,
+    "moduleRevisionPinned": true,
+    "contractDigestsRequired": true,
+    "ownershipEnforced": true,
+    "layersEnforced": true,
+    "dependencyGraphAcyclic": true,
+    "singleWriterState": true,
+    "analysisScopeBounded": true,
+    "authorityMode": "invoke"
+  },
+  "evolution": {
+    "baseRevisionRequired": true,
+    "deterministicSeedRequired": true,
+    "candidateLineageRequired": true,
+    "typedChangePlanRequired": true,
+    "moduleImpactRequired": true,
+    "moduleGraphRequired": true,
+    "newRevisionPerAppliedChange": true,
+    "proposalIsEvidence": false,
+    "evaluationScoreIsEvidence": false,
+    "applyRequiresApprovedLifecycleGate": true,
+    "applyRequiresAuthority": true,
+    "eventBackedChangeQueue": true,
+    "revertIsCompensatingEvent": true,
+    "historyRewriteAllowed": false,
+    "regenerationAfterApplyOrRevert": true,
+    "readbackVerificationRequired": true,
+    "replayExecutesChanges": false,
+    "modes": ["analysis-only", "change-plan", "auto-apply-safe"],
+    "effectFreeModes": ["analysis-only", "change-plan"],
+    "runStatuses": ["DRAFT", "COMPILED", "RUNNING", "BLOCKED", "AWAITING_APPROVAL", "COMPLETED", "FAILED", "CANCELLED"],
+    "candidateStatuses": ["PROPOSED", "SHORTLISTED", "SELECTED", "REJECTED", "REALIZED", "VERIFIED"],
+    "changeQueueStates": ["QUEUED", "APPLYING", "REGENERATING", "VERIFYING", "APPLIED", "REVERTED", "FAILED"],
+    "autoApplySafe": {
+      "explicitAllowlistRequired": true,
+      "reversibleOnly": true,
+      "compatibilityValidationRequired": true,
+      "lifecycleGateRequired": true,
+      "authorityRequired": true
+    }
+  },
   "traits": [
     {"id": "reconciliation", "operations": ["twin.reconcile"]},
     {"id": "mirror", "operations": ["twin.mirror.refresh", "twin.get"]},
@@ -120,7 +219,9 @@
     {"id": "notification", "operations": ["twin.notification.enqueue"]},
     {"id": "outbox", "operations": ["twin.outbox.acknowledge", "twin.history"]},
     {"id": "probe", "operations": ["twin.observation.publish", "twin.health"]},
-    {"id": "uri-process", "operations": ["uri.process.resolve", "uri.process.start", "uri.process.advance", "uri.process.cancel", "uri.capability.map", "uri.process.get"]}
+    {"id": "uri-process", "operations": ["uri.process.resolve", "uri.process.start", "uri.process.advance", "uri.process.cancel", "uri.capability.map", "uri.process.get"]},
+    {"id": "lifecycle", "operations": ["twin.lifecycle.transition", "twin.lifecycle.get"]},
+    {"id": "modular-evolution", "operations": ["twin.evolution.plan", "twin.evolution.apply", "twin.evolution.revert", "twin.evolution.get"]}
   ],
   "operations": [
     {
@@ -343,6 +444,84 @@
       "response": "subactor.twin.v1.UriProcessRun",
       "mutating": false,
       "projection": "UriProcessRun"
+    },
+    {
+      "id": "twin.lifecycle.transition",
+      "kind": "command",
+      "uri": "twin://generic/lifecycle/command/transition",
+      "capability": "twin.lifecycle.transition",
+      "providerRef": "twin-core",
+      "risk": "R2",
+      "status": "available",
+      "request": "subactor.twin.v1.TransitionLifecycleCommand",
+      "response": "subactor.twin.v1.CommandReceipt",
+      "mutating": true,
+      "emits": ["subactor.twin.v1.LifecycleTransitionRecorded"]
+    },
+    {
+      "id": "twin.lifecycle.get",
+      "kind": "query",
+      "uri": "twin://generic/lifecycle/query/get",
+      "capability": "twin.lifecycle.get",
+      "providerRef": "twin-core",
+      "risk": "R0",
+      "status": "available",
+      "request": "subactor.twin.v1.GetLifecycleQuery",
+      "response": "subactor.twin.v1.LifecycleView",
+      "mutating": false,
+      "projection": "LifecycleView"
+    },
+    {
+      "id": "twin.evolution.plan",
+      "kind": "command",
+      "uri": "twin://generic/evolution/command/plan",
+      "capability": "twin.evolution.plan",
+      "providerRef": "twin-core",
+      "risk": "R1",
+      "status": "available",
+      "request": "subactor.twin.v1.PlanEvolutionCommand",
+      "response": "subactor.twin.v1.CommandReceipt",
+      "mutating": true,
+      "emits": ["subactor.twin.v1.EvolutionPlanned"]
+    },
+    {
+      "id": "twin.evolution.apply",
+      "kind": "command",
+      "uri": "twin://generic/evolution/command/apply",
+      "capability": "twin.evolution.apply",
+      "providerRef": "twin-core",
+      "risk": "R3",
+      "status": "available",
+      "request": "subactor.twin.v1.ApplyEvolutionCommand",
+      "response": "subactor.twin.v1.CommandReceipt",
+      "mutating": true,
+      "emits": ["subactor.twin.v1.EvolutionApplied"]
+    },
+    {
+      "id": "twin.evolution.revert",
+      "kind": "command",
+      "uri": "twin://generic/evolution/command/revert",
+      "capability": "twin.evolution.revert",
+      "providerRef": "twin-core",
+      "risk": "R3",
+      "status": "available",
+      "request": "subactor.twin.v1.RevertEvolutionCommand",
+      "response": "subactor.twin.v1.CommandReceipt",
+      "mutating": true,
+      "emits": ["subactor.twin.v1.EvolutionReverted"]
+    },
+    {
+      "id": "twin.evolution.get",
+      "kind": "query",
+      "uri": "twin://generic/evolution/query/get",
+      "capability": "twin.evolution.get",
+      "providerRef": "twin-core",
+      "risk": "R0",
+      "status": "available",
+      "request": "subactor.twin.v1.GetEvolutionQuery",
+      "response": "subactor.twin.v1.EvolutionView",
+      "mutating": false,
+      "projection": "EvolutionView"
     }
   ],
   "processes": [
@@ -421,7 +600,13 @@
         {"operation": "uri.process.advance", "argv": ["twin", "process", "advance"]},
         {"operation": "uri.process.cancel", "argv": ["twin", "process", "cancel"]},
         {"operation": "uri.capability.map", "argv": ["twin", "capability", "map"]},
-        {"operation": "uri.process.get", "argv": ["twin", "process", "get"]}
+        {"operation": "uri.process.get", "argv": ["twin", "process", "get"]},
+        {"operation": "twin.lifecycle.transition", "argv": ["twin", "lifecycle", "transition"]},
+        {"operation": "twin.lifecycle.get", "argv": ["twin", "lifecycle", "get"]},
+        {"operation": "twin.evolution.plan", "argv": ["twin", "evolution", "plan"]},
+        {"operation": "twin.evolution.apply", "argv": ["twin", "evolution", "apply"]},
+        {"operation": "twin.evolution.revert", "argv": ["twin", "evolution", "revert"]},
+        {"operation": "twin.evolution.get", "argv": ["twin", "evolution", "get"]}
       ]
     },
     "shell": {
@@ -446,7 +631,13 @@
         {"operation": "uri.process.advance", "argv": ["twin", "process", "advance", "{request_protojson}"]},
         {"operation": "uri.process.cancel", "argv": ["twin", "process", "cancel", "{request_protojson}"]},
         {"operation": "uri.capability.map", "argv": ["twin", "capability", "map", "{request_protojson}"]},
-        {"operation": "uri.process.get", "argv": ["twin", "process", "get", "{request_protojson}"]}
+        {"operation": "uri.process.get", "argv": ["twin", "process", "get", "{request_protojson}"]},
+        {"operation": "twin.lifecycle.transition", "argv": ["twin", "lifecycle", "transition", "{request_protojson}"]},
+        {"operation": "twin.lifecycle.get", "argv": ["twin", "lifecycle", "get", "{request_protojson}"]},
+        {"operation": "twin.evolution.plan", "argv": ["twin", "evolution", "plan", "{request_protojson}"]},
+        {"operation": "twin.evolution.apply", "argv": ["twin", "evolution", "apply", "{request_protojson}"]},
+        {"operation": "twin.evolution.revert", "argv": ["twin", "evolution", "revert", "{request_protojson}"]},
+        {"operation": "twin.evolution.get", "argv": ["twin", "evolution", "get", "{request_protojson}"]}
       ]
     },
     "rest": {
@@ -469,7 +660,13 @@
         {"operation": "uri.process.advance", "method": "POST", "path": "/v1/twins/{aggregate_id}/process-runs/{run_id}:advance"},
         {"operation": "uri.process.cancel", "method": "POST", "path": "/v1/twins/{aggregate_id}/process-runs/{run_id}:cancel"},
         {"operation": "uri.capability.map", "method": "GET", "path": "/v1/twins/{aggregate_id}/capability-map"},
-        {"operation": "uri.process.get", "method": "GET", "path": "/v1/twins/{aggregate_id}/process-runs/{run_id}"}
+        {"operation": "uri.process.get", "method": "GET", "path": "/v1/twins/{aggregate_id}/process-runs/{run_id}"},
+        {"operation": "twin.lifecycle.transition", "method": "POST", "path": "/v1/twins/{aggregate_id}/lifecycle:transition"},
+        {"operation": "twin.lifecycle.get", "method": "GET", "path": "/v1/twins/{aggregate_id}/lifecycle"},
+        {"operation": "twin.evolution.plan", "method": "POST", "path": "/v1/twins/{aggregate_id}/evolution:plan"},
+        {"operation": "twin.evolution.apply", "method": "POST", "path": "/v1/twins/{aggregate_id}/evolution:apply"},
+        {"operation": "twin.evolution.revert", "method": "POST", "path": "/v1/twins/{aggregate_id}/evolution:revert"},
+        {"operation": "twin.evolution.get", "method": "GET", "path": "/v1/twins/{aggregate_id}/evolution"}
       ]
     },
     "mcp": {
@@ -494,7 +691,13 @@
         {"operation": "uri.process.advance", "kind": "tool", "name": "twin_uri_process_advance", "requiresAuthority": true},
         {"operation": "uri.process.cancel", "kind": "tool", "name": "twin_uri_process_cancel", "requiresAuthority": true},
         {"operation": "uri.capability.map", "kind": "resource", "name": "twin://{aggregate_id}/capability-map", "requiresAuthority": false},
-        {"operation": "uri.process.get", "kind": "resource", "name": "twin://{aggregate_id}/process-runs/{run_id}", "requiresAuthority": false}
+        {"operation": "uri.process.get", "kind": "resource", "name": "twin://{aggregate_id}/process-runs/{run_id}", "requiresAuthority": false},
+        {"operation": "twin.lifecycle.transition", "kind": "tool", "name": "twin_lifecycle_transition", "requiresAuthority": true},
+        {"operation": "twin.lifecycle.get", "kind": "resource", "name": "twin://{aggregate_id}/lifecycle", "requiresAuthority": false},
+        {"operation": "twin.evolution.plan", "kind": "tool", "name": "twin_evolution_plan", "requiresAuthority": true},
+        {"operation": "twin.evolution.apply", "kind": "tool", "name": "twin_evolution_apply", "requiresAuthority": true},
+        {"operation": "twin.evolution.revert", "kind": "tool", "name": "twin_evolution_revert", "requiresAuthority": true},
+        {"operation": "twin.evolution.get", "kind": "resource", "name": "twin://{aggregate_id}/evolution", "requiresAuthority": false}
       ]
     }
   },

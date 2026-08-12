@@ -16,7 +16,7 @@ import tempfile
 from typing import Any, Iterable
 
 
-STANDARD_VERSION = "1.0.0"
+STANDARD_VERSION = "1.1.0"
 PROFILE_SCHEMA = "twin.profile/v1"
 REQUIRED_TRAITS = {
     "reconciliation",
@@ -28,6 +28,8 @@ REQUIRED_TRAITS = {
     "outbox",
     "probe",
     "uri-process",
+    "lifecycle",
+    "modular-evolution",
 }
 REQUIRED_SURFACES = ("cli", "shell", "rest", "mcp")
 REQUIRED_EVENT_METADATA = {
@@ -90,6 +92,15 @@ REQUIRED_MESSAGES = {
     "UriProcessRun",
     "UriStepReceipt",
     "HumanTask",
+    "ContractSourceRef",
+    "ModuleContractRef",
+    "LifecycleBlueprintRef",
+    "LifecycleTransitionRecord",
+    "EvolutionChange",
+    "EvolutionCandidate",
+    "EvolutionPlan",
+    "EvolutionQueueItem",
+    "EvolutionRun",
 }
 REQUIRED_SERVICES = {
     "TwinCommandService",
@@ -136,6 +147,65 @@ REQUIRED_PROCESS_STATES = {
 }
 REQUIRED_TERMINAL_STATES = {"SUCCEEDED", "FAILED", "CANCELLED", "COMPENSATED"}
 REQUIRED_HUMAN_TASK_STATES = {"PENDING", "RESOLVED", "DECLINED", "CANCELLED", "EXPIRED"}
+REQUIRED_LIFECYCLE_TRANSITION_STATUSES = {"REQUESTED", "APPROVED", "BLOCKED", "REJECTED"}
+REQUIRED_EVOLUTION_MODES = {"analysis-only", "change-plan", "auto-apply-safe"}
+REQUIRED_EFFECT_FREE_MODES = {"analysis-only", "change-plan"}
+REQUIRED_CANDIDATE_STATUSES = {
+    "PROPOSED",
+    "SHORTLISTED",
+    "SELECTED",
+    "REJECTED",
+    "REALIZED",
+    "VERIFIED",
+}
+REQUIRED_EVOLUTION_RUN_STATUSES = {
+    "DRAFT",
+    "COMPILED",
+    "RUNNING",
+    "BLOCKED",
+    "AWAITING_APPROVAL",
+    "COMPLETED",
+    "FAILED",
+    "CANCELLED",
+}
+REQUIRED_EVOLUTION_QUEUE_STATES = {
+    "QUEUED",
+    "APPLYING",
+    "REGENERATING",
+    "VERIFYING",
+    "APPLIED",
+    "REVERTED",
+    "FAILED",
+}
+REVISION_PATTERN = re.compile(r"^[0-9a-f]{40}$")
+DIGEST_PATTERN = re.compile(r"^sha256:[0-9a-f]{64}$")
+REQUIRED_CONTRACT_SOURCES = {
+    "lifecycle-dsl": (
+        "normative",
+        "https://github.com/subactor/lifecycle",
+        "spec/LIFECYCLE_DSL.md",
+    ),
+    "modularity-workspace": (
+        "normative",
+        "https://github.com/subactor/modularity",
+        "docs/schemas/modularity-workspace.schema.v1.json",
+    ),
+    "twinstudio-lifecycle-blueprint": (
+        "informative",
+        "https://github.com/digitaltwin-run/twinstudio",
+        "schemas/lifecycle-blueprint.schema.json",
+    ),
+    "twinstudio-evolution-run": (
+        "informative",
+        "https://github.com/digitaltwin-run/twinstudio",
+        "schemas/evolution-run.schema.json",
+    ),
+    "twinstudio-evolution-dsl": (
+        "informative",
+        "https://github.com/digitaltwin-run/twinstudio",
+        "docs/18_PROJECT_EVOLUTION_DSL_PL.md",
+    ),
+}
 UNSAFE_SHELL_PATTERN = re.compile(r"[;&|`$<>\n\r]")
 
 
@@ -205,6 +275,11 @@ def _list(value: Any) -> list[Any]:
     return value if isinstance(value, list) else []
 
 
+def _is_exact_string_set(value: Any, expected: set[str]) -> bool:
+    items = _list(value)
+    return len(items) == len(expected) and all(isinstance(item, str) for item in items) and set(items) == expected
+
+
 def _validate_profile_shape(profile: dict[str, Any], diagnostics: list[Diagnostic]) -> None:
     if profile.get("schema") != PROFILE_SCHEMA:
         _add(diagnostics, "TWIN-PROFILE-001", "$.schema", f"must equal {PROFILE_SCHEMA}")
@@ -215,6 +290,83 @@ def _validate_profile_shape(profile: dict[str, Any], diagnostics: list[Diagnosti
     aggregate = _dict(profile.get("aggregate"))
     if not aggregate.get("type"):
         _add(diagnostics, "TWIN-PROFILE-001", "$.aggregate.type", "is required")
+
+
+def _validate_contract_sources(profile: dict[str, Any], diagnostics: list[Diagnostic]) -> None:
+    sources = _list(profile.get("contractSources"))
+    seen: dict[str, dict[str, Any]] = {}
+    twinstudio_revisions: set[str] = set()
+    for index, raw in enumerate(sources):
+        source = _dict(raw)
+        path = f"$.contractSources[{index}]"
+        source_id = source.get("id")
+        if not isinstance(source_id, str) or not source_id:
+            _add(diagnostics, "TWIN-SOURCE-001", path + ".id", "must be a non-empty stable source ID")
+            continue
+        if source_id in seen:
+            _add(diagnostics, "TWIN-SOURCE-001", path + ".id", f"duplicate source contract {source_id}")
+            continue
+        seen[source_id] = source
+        expected = REQUIRED_CONTRACT_SOURCES.get(source_id)
+        if source.get("role") not in {"normative", "informative"}:
+            _add(diagnostics, "TWIN-SOURCE-001", path + ".role", "must be normative or informative")
+        repository = source.get("repository")
+        if not isinstance(repository, str) or not repository.startswith("https://"):
+            _add(diagnostics, "TWIN-SOURCE-001", path + ".repository", "must be an HTTPS repository URL")
+        artifact = source.get("artifact")
+        if (
+            not isinstance(artifact, str)
+            or not artifact
+            or Path(artifact).is_absolute()
+            or ".." in Path(artifact).parts
+        ):
+            _add(
+                diagnostics,
+                "TWIN-SOURCE-001",
+                path + ".artifact",
+                "must be a safe repository-relative artifact path",
+            )
+        if expected is not None:
+            expected_role, expected_repository, expected_artifact = expected
+            for field, expected_value in (
+                ("role", expected_role),
+                ("repository", expected_repository),
+                ("artifact", expected_artifact),
+            ):
+                if source.get(field) != expected_value:
+                    _add(
+                        diagnostics,
+                        "TWIN-SOURCE-001",
+                        path + f".{field}",
+                        f"must equal {expected_value}",
+                    )
+        revision = source.get("revision")
+        if not isinstance(revision, str) or not REVISION_PATTERN.fullmatch(revision):
+            _add(
+                diagnostics,
+                "TWIN-SOURCE-001",
+                path + ".revision",
+                "must be an immutable 40-character lowercase git revision",
+            )
+        elif isinstance(source_id, str) and source_id.startswith("twinstudio-"):
+            twinstudio_revisions.add(revision)
+        digest = source.get("digest")
+        if not isinstance(digest, str) or not DIGEST_PATTERN.fullmatch(digest):
+            _add(
+                diagnostics,
+                "TWIN-SOURCE-001",
+                path + ".digest",
+                "must be sha256 followed by 64 lowercase hexadecimal characters",
+            )
+    for missing in sorted(set(REQUIRED_CONTRACT_SOURCES) - set(seen)):
+        _add(diagnostics, "TWIN-SOURCE-001", "$.contractSources", f"missing source contract {missing}")
+    if len(twinstudio_revisions) > 1:
+        _add(
+            diagnostics,
+            "TWIN-SOURCE-001",
+            "$.contractSources",
+            "all Twinstudio evidence artifacts must use one coherent immutable revision",
+        )
 
 
 def _validate_event_sourcing(profile: dict[str, Any], diagnostics: list[Diagnostic]) -> None:
@@ -575,6 +727,155 @@ def _validate_uri_process_policy(profile: dict[str, Any], diagnostics: list[Diag
             "$.processRuntime.terminalStates",
             "terminal states must belong to the declared process state machine",
         )
+
+
+def _validate_lifecycle_and_evolution(profile: dict[str, Any], diagnostics: list[Diagnostic]) -> None:
+    lifecycle = _dict(profile.get("lifecycle"))
+    for field in (
+        "blueprintImmutable",
+        "definitionVersionRequired",
+        "entryExitCriteriaRequired",
+        "transitionEvidenceRequired",
+        "unmetCriteriaRecorded",
+        "approvalIdentityRecorded",
+        "approvalDoesNotGrantAuthority",
+        "unmentionedTransitionsFailClosed",
+        "repeatableFeedbackStagesAllowed",
+        "transitionsEventBacked",
+    ):
+        if lifecycle.get(field) is not True:
+            _add(diagnostics, "TWIN-LIFECYCLE-001", f"$.lifecycle.{field}", "must be true")
+    if not _is_exact_string_set(
+        lifecycle.get("transitionStatuses"), REQUIRED_LIFECYCLE_TRANSITION_STATUSES
+    ):
+        _add(
+            diagnostics,
+            "TWIN-LIFECYCLE-001",
+            "$.lifecycle.transitionStatuses",
+            "must declare exactly REQUESTED, APPROVED, BLOCKED and REJECTED",
+        )
+    if lifecycle.get("replayExecutesTransitions") is not False:
+        _add(
+            diagnostics,
+            "TWIN-REPLAY-001",
+            "$.lifecycle.replayExecutesTransitions",
+            "lifecycle replay must never execute transitions",
+        )
+    if lifecycle.get("approvalDoesNotGrantAuthority") is not True:
+        _add(
+            diagnostics,
+            "TWIN-AUTH-001",
+            "$.lifecycle.approvalDoesNotGrantAuthority",
+            "lifecycle gate approval must not manufacture execution authority",
+        )
+
+    modularity = _dict(profile.get("modularity"))
+    if modularity.get("workspaceSchema") != "subactor.modularity/workspace/v1":
+        _add(
+            diagnostics,
+            "TWIN-MODULARITY-001",
+            "$.modularity.workspaceSchema",
+            "must equal subactor.modularity/workspace/v1",
+        )
+    for field in (
+        "graphDigestRequired",
+        "moduleRevisionPinned",
+        "contractDigestsRequired",
+        "ownershipEnforced",
+        "layersEnforced",
+        "dependencyGraphAcyclic",
+        "singleWriterState",
+        "analysisScopeBounded",
+    ):
+        if modularity.get(field) is not True:
+            _add(diagnostics, "TWIN-MODULARITY-001", f"$.modularity.{field}", "must be true")
+    if modularity.get("authorityMode") != "invoke":
+        _add(
+            diagnostics,
+            "TWIN-AUTH-001",
+            "$.modularity.authorityMode",
+            "only an invoke contract may cross the external authority boundary",
+        )
+
+    evolution = _dict(profile.get("evolution"))
+    for field in (
+        "baseRevisionRequired",
+        "deterministicSeedRequired",
+        "candidateLineageRequired",
+        "typedChangePlanRequired",
+        "moduleImpactRequired",
+        "moduleGraphRequired",
+        "newRevisionPerAppliedChange",
+        "applyRequiresApprovedLifecycleGate",
+        "applyRequiresAuthority",
+        "eventBackedChangeQueue",
+        "revertIsCompensatingEvent",
+        "regenerationAfterApplyOrRevert",
+        "readbackVerificationRequired",
+    ):
+        if evolution.get(field) is not True:
+            _add(diagnostics, "TWIN-EVOLUTION-001", f"$.evolution.{field}", "must be true")
+    for field in ("proposalIsEvidence", "evaluationScoreIsEvidence", "historyRewriteAllowed"):
+        if evolution.get(field) is not False:
+            _add(diagnostics, "TWIN-EVOLUTION-001", f"$.evolution.{field}", "must be false")
+    if evolution.get("replayExecutesChanges") is not False:
+        _add(
+            diagnostics,
+            "TWIN-REPLAY-001",
+            "$.evolution.replayExecutesChanges",
+            "evolution replay must not drain, apply, revert or regenerate the change queue",
+        )
+
+    if not _is_exact_string_set(evolution.get("modes"), REQUIRED_EVOLUTION_MODES):
+        _add(
+            diagnostics,
+            "TWIN-EVOLUTION-001",
+            "$.evolution.modes",
+            "must declare exactly analysis-only, change-plan and auto-apply-safe",
+        )
+    if not _is_exact_string_set(evolution.get("effectFreeModes"), REQUIRED_EFFECT_FREE_MODES):
+        _add(
+            diagnostics,
+            "TWIN-EVOLUTION-001",
+            "$.evolution.effectFreeModes",
+            "analysis-only and change-plan must be the only effect-free evolution modes",
+        )
+    if not _is_exact_string_set(evolution.get("candidateStatuses"), REQUIRED_CANDIDATE_STATUSES):
+        _add(
+            diagnostics,
+            "TWIN-EVOLUTION-001",
+            "$.evolution.candidateStatuses",
+            "must preserve proposed, selected, realized and verified epistemic states",
+        )
+    if not _is_exact_string_set(evolution.get("runStatuses"), REQUIRED_EVOLUTION_RUN_STATUSES):
+        _add(
+            diagnostics,
+            "TWIN-EVOLUTION-001",
+            "$.evolution.runStatuses",
+            "must preserve draft through awaiting-approval and terminal run states",
+        )
+    if not _is_exact_string_set(evolution.get("changeQueueStates"), REQUIRED_EVOLUTION_QUEUE_STATES):
+        _add(
+            diagnostics,
+            "TWIN-EVOLUTION-001",
+            "$.evolution.changeQueueStates",
+            "must preserve queued, regenerating, verifying, applied, reverted and failed states",
+        )
+    auto_apply = _dict(evolution.get("autoApplySafe"))
+    for field in (
+        "explicitAllowlistRequired",
+        "reversibleOnly",
+        "compatibilityValidationRequired",
+        "lifecycleGateRequired",
+        "authorityRequired",
+    ):
+        if auto_apply.get(field) is not True:
+            _add(
+                diagnostics,
+                "TWIN-EVOLUTION-001",
+                f"$.evolution.autoApplySafe.{field}",
+                "must be true",
+            )
 
 
 def _process_graph_has_cycle(step_ids: set[str], dependencies: dict[str, set[str]]) -> bool:
@@ -1155,6 +1456,148 @@ def _validate_proto(
                 "gaps",
             },
         ),
+        (
+            "ContractSourceRef",
+            {"source_id", "role", "repository", "revision", "artifact", "digest_sha256"},
+        ),
+        (
+            "ModuleContractRef",
+            {
+                "module_id",
+                "repository",
+                "revision",
+                "contract_uri",
+                "contract_version",
+                "contract_digest_sha256",
+                "layer",
+                "owner",
+                "state_writer",
+                "depends_on",
+            },
+        ),
+        (
+            "LifecycleBlueprintRef",
+            {"blueprint_id", "version", "definition_uri", "definition_digest_sha256", "stage_ids", "immutable"},
+        ),
+        (
+            "LifecycleTransitionRecord",
+            {
+                "transition_id",
+                "blueprint",
+                "from_stage",
+                "to_stage",
+                "base_revision",
+                "status",
+                "evidence",
+                "unmet_criteria",
+                "requested_by",
+                "approved_by",
+                "gate_decision_id",
+                "recorded_at",
+            },
+        ),
+        (
+            "EvolutionChange",
+            {"operation_id", "kind", "target_uri", "module_id", "arguments", "reversible", "validation_steps"},
+        ),
+        (
+            "EvolutionCandidate",
+            {
+                "candidate_id",
+                "generation",
+                "parent_candidate_ids",
+                "status",
+                "methods",
+                "proposed_changes",
+                "module_ids",
+                "evaluation_digest_sha256",
+                "evidence",
+            },
+        ),
+        (
+            "EvolutionPlan",
+            {
+                "plan_id",
+                "run_id",
+                "base_revision",
+                "modularity_graph_digest_sha256",
+                "lifecycle_transition_id",
+                "lifecycle_stage",
+                "deterministic_seed",
+                "mode",
+                "module_contracts",
+                "candidates",
+                "selected_candidate_ids",
+                "plan_digest_sha256",
+                "allowlisted",
+                "reversible",
+                "compatibility_validated",
+                "source_contracts",
+            },
+        ),
+        (
+            "EvolutionQueueItem",
+            {"queue_item_id", "plan_id", "state", "command_id", "source_event_id", "affected_module_ids", "updated_at"},
+        ),
+        (
+            "EvolutionRun",
+            {
+                "run_id",
+                "base_revision",
+                "current_revision",
+                "lifecycle_stage",
+                "status",
+                "mode",
+                "candidates",
+                "selected_candidate_ids",
+                "change_queue",
+                "evidence",
+                "regenerated_artifact_digest_sha256",
+                "readback_digest_sha256",
+            },
+        ),
+        ("TransitionLifecycleCommand", {"envelope", "transition"}),
+        ("PlanEvolutionCommand", {"envelope", "plan"}),
+        (
+            "ApplyEvolutionCommand",
+            {
+                "envelope",
+                "plan_id",
+                "expected_base_revision",
+                "lifecycle_transition_id",
+                "selected_candidate_ids",
+                "expected_plan_digest_sha256",
+            },
+        ),
+        ("RevertEvolutionCommand", {"envelope", "applied_event_id", "expected_current_revision", "reason"}),
+        ("LifecycleView", {"result", "blueprint", "current_stage", "transitions"}),
+        ("EvolutionView", {"result", "run"}),
+        (
+            "EvolutionApplied",
+            {
+                "plan_id",
+                "base_revision",
+                "new_revision",
+                "affected_module_ids",
+                "queue_item",
+                "evidence",
+                "regenerated_artifact_digest_sha256",
+                "readback_digest_sha256",
+            },
+        ),
+        (
+            "EvolutionReverted",
+            {
+                "applied_event_id",
+                "reverted_revision",
+                "restored_revision",
+                "affected_module_ids",
+                "queue_item",
+                "evidence",
+                "regenerated_artifact_digest_sha256",
+                "readback_digest_sha256",
+            },
+        ),
     ):
         for missing in sorted(required_fields - message_fields(message_name)):
             _add(diagnostics, "TWIN-PROTO-001", "$.protobuf.path", f"{message_name} is missing {missing}")
@@ -1206,9 +1649,25 @@ def _validate_proto(
         "URI_PROCESS_RUN_STATE_COMPENSATED",
         "HUMAN_TASK_STATE_DECLINED",
         "HUMAN_TASK_STATE_EXPIRED",
+        "LIFECYCLE_TRANSITION_STATUS_REQUESTED",
+        "LIFECYCLE_TRANSITION_STATUS_APPROVED",
+        "LIFECYCLE_TRANSITION_STATUS_BLOCKED",
+        "LIFECYCLE_TRANSITION_STATUS_REJECTED",
+        "EVOLUTION_MODE_ANALYSIS_ONLY",
+        "EVOLUTION_MODE_CHANGE_PLAN",
+        "EVOLUTION_MODE_AUTO_APPLY_SAFE",
+        "EVOLUTION_CANDIDATE_STATUS_PROPOSED",
+        "EVOLUTION_CANDIDATE_STATUS_SELECTED",
+        "EVOLUTION_CANDIDATE_STATUS_REALIZED",
+        "EVOLUTION_CANDIDATE_STATUS_VERIFIED",
+        "EVOLUTION_RUN_STATUS_AWAITING_APPROVAL",
+        "EVOLUTION_RUN_STATUS_COMPLETED",
+        "EVOLUTION_RUN_STATUS_CANCELLED",
+        "EVOLUTION_QUEUE_STATE_REGENERATING",
+        "EVOLUTION_QUEUE_STATE_REVERTED",
     ):
         if enum_value not in clean:
-            _add(diagnostics, "TWIN-PROTO-001", "$.protobuf.path", f"missing URI Process enum value {enum_value}")
+            _add(diagnostics, "TWIN-PROTO-001", "$.protobuf.path", f"missing required enum value {enum_value}")
 
 
 def _validate_generation(profile: dict[str, Any], diagnostics: list[Diagnostic]) -> None:
@@ -1240,12 +1699,14 @@ def validate_profile(profile_path: str | os.PathLike[str]) -> list[Diagnostic]:
         _add(diagnostics, "TWIN-JSON-001", "$", str(error))
         return sorted(set(diagnostics))
     _validate_profile_shape(profile, diagnostics)
+    _validate_contract_sources(profile, diagnostics)
     _validate_event_sourcing(profile, diagnostics)
     _validate_core_boundaries(profile, diagnostics)
     operations = _validate_operations(profile, diagnostics)
     _validate_uri_operations(profile, operations, diagnostics)
     _validate_traits(profile, operations, diagnostics)
     _validate_uri_process_policy(profile, diagnostics)
+    _validate_lifecycle_and_evolution(profile, diagnostics)
     _validate_processes(profile, operations, diagnostics)
     _validate_transports(profile, operations, diagnostics)
     _validate_proto(profile, path, operations, diagnostics)
@@ -1306,6 +1767,16 @@ def _conformance_document(profile: dict[str, Any]) -> dict[str, Any]:
                     "expected": "resolved-or-typed-gap",
                 }
             )
+    for source in _list(profile.get("contractSources")):
+        source = _dict(source)
+        cases.append(
+            {
+                "id": f"source.{source['id']}",
+                "kind": "immutable-source-contract",
+                "source": source,
+                "expected": "revision-and-sha256-pinned",
+            }
+        )
     invariants = [
         "append-only-events",
         "expected-version-concurrency",
@@ -1321,6 +1792,17 @@ def _conformance_document(profile: dict[str, Any]) -> dict[str, Any]:
         "process-step-receipts-idempotent",
         "process-replay-observe-only",
         "actor-identity-is-not-authority",
+        "lifecycle-transition-evidence-gated",
+        "lifecycle-approval-is-not-authority",
+        "lifecycle-replay-observe-only",
+        "module-contract-revisions-pinned",
+        "module-dependencies-acyclic-single-writer",
+        "candidate-lineage-preserves-epistemic-state",
+        "change-plan-module-impact-typed",
+        "auto-apply-safe-gated-reversible-authorized",
+        "revert-is-compensating-event",
+        "apply-revert-regenerate-and-readback",
+        "evolution-replay-observe-only",
     ]
     cases.extend(
         {"id": f"invariant.{name}", "kind": "semantic-invariant", "expected": "pass"}
@@ -1364,6 +1846,10 @@ def generate_bundle(
         "uriCapabilities": profile["uriCapabilities"],
         "processRuntime": profile["processRuntime"],
         "processes": profile["processes"],
+        "contractSources": profile["contractSources"],
+        "lifecycle": profile["lifecycle"],
+        "modularity": profile["modularity"],
+        "evolution": profile["evolution"],
     }
     manifest = {
         "schema": "twin.bundle/v1",
@@ -1381,6 +1867,10 @@ def generate_bundle(
         },
         "executableCode": False,
         "uriProcessDefinitions": len(profile["processes"]),
+        "contractSources": len(profile["contractSources"]),
+        "evolutionOperations": sum(
+            1 for operation in profile["operations"] if operation["id"].startswith("twin.evolution.")
+        ),
         "outputs": EXPECTED_OUTPUTS,
     }
 

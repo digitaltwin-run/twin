@@ -2,6 +2,11 @@
 
 ## Active
 
+- [ ] [`ticket-005`](project/ticket-005/README.md): add evidence-gated
+  lifecycle and modular, revision-pinned evolution contracts grounded in
+  immutable Lifecycle, Modularity and Twinstudio sources. Status:
+  `IN_PROGRESS / EDIT`; classification: `FEATURE / P1 / requested`.
+
 - [x] [`ticket-004`](project/ticket-004/README.md): adopt the approved
   Node.js 24 reusable governance workflow at one immutable standard SHA without
   changing the separately pinned local governance package. Status:
