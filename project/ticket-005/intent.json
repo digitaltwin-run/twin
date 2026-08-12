@@ -57,10 +57,7 @@
       ],
       "responsibilityChanges": false,
       "interfaceChanges": [],
-      "dataChanges": [
-        "The reference profile gains immutable source contracts plus lifecycle and evolutionary modularity policies",
-        "The protobuf model gains transport-neutral lifecycle transition and evolution plan/apply/revert views and events"
-      ],
+      "dataChanges": [],
       "ui": {"impact": "none", "states": [], "evidence": []},
       "rollback": "Revert ticket-005 before a stable Twin Standard release; existing v1 consumers remain identifiable by the prior profile version and contract hashes"
     },

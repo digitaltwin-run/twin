@@ -9,11 +9,11 @@
 ## Goal and scope
 
 Extend Twin Standard with a language-neutral lifecycle and modular evolution
-contract. Lifecycle transitions are immutable, evidence-gated records and do
-not grant execution authority. Evolution starts from a pinned base revision,
-produces traceable candidates and a typed module-aware change plan, then
-applies or reverts changes only through commands and events followed by
-regeneration and readback verification.
+contract. Require lifecycle transition records to be immutable and
+evidence-gated. Forbid lifecycle transitions from granting execution
+authority. Require evolution to start from a pinned base revision, preserve
+candidate lineage and use typed module-aware plans. Apply or revert changes
+only through commands/events, then regenerate and read back derived artifacts.
 
 The normative inputs are pinned to `subactor/lifecycle@f3b8e13`,
 `subactor/modularity@1c8c94e` and `digitaltwin-run/twinstudio@4183807`.
@@ -33,23 +33,25 @@ informative implementation evidence rather than a runtime dependency.
   apply/revert and regeneration/readback invariants with stable diagnostics.
 - [ ] AC-04: Expose lifecycle transition and evolution plan/apply/revert/query
   semantics through protobuf-backed CLI, safe shell, REST and MCP bindings.
-- [ ] AC-05: Pass reference validation, unit tests, deterministic generation,
-  networkless Docker and governance with zero new runtime dependencies.
+- [ ] AC-05: Run reference validation, unit tests, deterministic generation,
+  networkless Docker and governance; verify that the runtime dependency set
+  remains unchanged.
 - [ ] AC-06: Run current todo2code LLM-first through SubLLM and obtain an
   independent exact-head Validator Agent review before merge.
 
 ## Risks and constraints
 
-- A proposal, predicted score, simulation or generated artifact is not proof;
-  only recorded observations/evidence can satisfy a lifecycle gate.
-- Lifecycle approval records intent but cannot mint authority; effectful apply
-  and revert commands still require external authorization and receipts.
-- Module changes must reference the immutable Modularity graph and contract
-  digests, respect ownership/layers/DAG rules and create a new revision.
-- Replay rebuilds state only. Undo is a compensating command/event and never
-  rewrites or deletes history.
-- `auto-apply-safe` is limited to explicitly allow-listed, reversible plans;
-  analysis and change-plan modes remain effect-free.
+- Reject a proposal, predicted score, simulation or generated artifact as gate
+  proof unless recorded observations/evidence authenticate it.
+- Keep lifecycle approval separate from authority; require external
+  authorization and receipts for effectful apply and revert commands.
+- Require module changes to reference the immutable Modularity graph and
+  contract digests, respect ownership/layers/DAG rules and create a new
+  revision.
+- Rebuild state without effects during replay. Model undo as a compensating
+  command/event and forbid rewriting or deleting history.
+- Limit `auto-apply-safe` to explicitly allow-listed, reversible plans. Keep
+  analysis and change-plan modes free of external effects.
 
 ## Participants
 

@@ -233,13 +233,31 @@ class TwinStandardTests(unittest.TestCase):
     def test_lifecycle_modularity_and_twinstudio_sources_are_immutable(self):
         sources = {item["id"]: item for item in self._document()["contractSources"]}
         self.assertEqual(set(twin_standard.REQUIRED_CONTRACT_SOURCES), set(sources))
+        expected = {
+            "lifecycle-dsl": (
+                "f3b8e13eb17128fd0f3ff05ac45fc99c99c470c4",
+                "sha256:358c6718838a9f8e74cf95db83ffdda5b63b5df6d4369c36682b7583272dc465",
+            ),
+            "modularity-workspace": (
+                "1c8c94ee7e13ab95af3ab734b9548ebdfc4a7c20",
+                "sha256:98db51af5b17e9a480f587f462da52aafd70d8b40ae87d873d7a42fdd4fd5a68",
+            ),
+            "twinstudio-lifecycle-blueprint": (
+                "4183807d9be0bb2a39149ddea494a224286f5dbb",
+                "sha256:15cd979423cc50588720ee8b312cd90950274a155e0db91cd4c9d022c6e32e00",
+            ),
+            "twinstudio-evolution-run": (
+                "4183807d9be0bb2a39149ddea494a224286f5dbb",
+                "sha256:7df0482d8073cce46fd290d85f5ac37f588606cdfaac1933135b96cd026878ec",
+            ),
+            "twinstudio-evolution-dsl": (
+                "4183807d9be0bb2a39149ddea494a224286f5dbb",
+                "sha256:d1d72f779fa137d3997149dc84a8c6bc5dd4a10f335f1149a4fca301694aafa6",
+            ),
+        }
         self.assertEqual(
-            "f3b8e13eb17128fd0f3ff05ac45fc99c99c470c4",
-            sources["lifecycle-dsl"]["revision"],
-        )
-        self.assertEqual(
-            "sha256:98db51af5b17e9a480f587f462da52aafd70d8b40ae87d873d7a42fdd4fd5a68",
-            sources["modularity-workspace"]["digest"],
+            expected,
+            {source_id: (source["revision"], source["digest"]) for source_id, source in sources.items()},
         )
         twinstudio = [source for source in sources.values() if source["id"].startswith("twinstudio-")]
         self.assertEqual({"4183807d9be0bb2a39149ddea494a224286f5dbb"}, {item["revision"] for item in twinstudio})

@@ -202,7 +202,8 @@ pinned historical module revision.
 
 Three execution modes are portable:
 
-- `analysis-only` may produce candidates and evaluations but no change intent;
+- `analysis-only` may produce candidates and evaluations but MUST NOT enqueue
+  or apply a change plan;
 - `change-plan` may append a proposed plan but MUST NOT execute its effects;
 - `auto-apply-safe` MAY apply only an explicitly allow-listed plan that is
   reversible, compatible, lifecycle-approved and externally authorized.
@@ -300,13 +301,13 @@ sorted by code and JSON path. Stable diagnostic families are:
 | `TWIN-OPERATION-001` | Operation identity, kind or protobuf type is invalid. |
 | `TWIN-CQRS-001` | Command/query responsibilities are mixed. |
 | `TWIN-EVENT-001` | Event-store or envelope metadata invariant is absent. |
-| `TWIN-REPLAY-001` | Replay can execute effects or trusts snapshots. |
-| `TWIN-AUTH-001` | Mutation authority or receipt requirements are weakened. |
-| `TWIN-CONNECTOR-001` | A connector owns forbidden core responsibilities. |
-| `TWIN-SECRET-001` | Secret values are permitted or modeled. |
+| `TWIN-REPLAY-001` | The replay or snapshot-source safety invariant is violated. |
+| `TWIN-AUTH-001` | The mutation-authority or receipt invariant is violated. |
+| `TWIN-CONNECTOR-001` | The connector/core responsibility boundary is violated. |
+| `TWIN-SECRET-001` | The secret-value prohibition is violated. |
 | `TWIN-EVIDENCE-001` | Evidence, join-key or unevaluable semantics are unsafe. |
 | `TWIN-TRANSPORT-001` | A surface has incomplete or unresolved bindings. |
-| `TWIN-SHELL-001` | A shell binding can evaluate or interpolate text. |
+| `TWIN-SHELL-001` | The argv-only shell safety invariant is violated. |
 | `TWIN-REST-001` | REST method/path semantics are invalid. |
 | `TWIN-MCP-001` | MCP is not JSON-RPC + ProtoJSON or weakens command authority. |
 | `TWIN-PROTO-001` | The protobuf file or referenced declarations are invalid. |
