@@ -12,3 +12,6 @@
   Linux/Windows and the real reusable workflow with zero annotations.
 - Recorded todo2code's required-LLM provider failure without fallback and used
   the Validator LLM feedback to repair stale validation communication.
+- Received final exact-head trusted and advisory approval with no findings,
+  merged PR #7, deleted its branch and passed the full post-merge workflow.
+- Marked ticket-004 `DONE / DONE`.
