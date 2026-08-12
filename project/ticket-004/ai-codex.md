@@ -33,6 +33,17 @@ its `standard-ref`; they must change atomically.
 - Host validation retained all 58 passing tests. The first governance run
   correctly rejected a 15-minute estimate labeled `XS` (maximum 10); corrected
   the declaration to allowed class `S` without widening scope or budget.
+- Re-ran governance successfully with 0 errors and 0 warnings; the networkless
+  image retained all 58 tests.
+- Published PR #7 and explicitly dispatched head `6b41308`. Linux, Windows and
+  the new reusable governance job all passed with zero annotations; the latter
+  executed the central Node 24 workflow successfully.
+- Ran todo2code `20260812T002646Z-45de4690` with every semantic stage requested
+  as LLM. The configured key still returned its weekly limit at NL, so the run
+  remained failed with no graph and no fallback.
+- Validator run `31550317756` deterministically approved exact head after two
+  GLM 5.2 chunks. Its advisory request-for-changes concerned the stale PR body
+  and missing evidence now recorded here, not the two-token implementation.
 
 ## Blockers
 

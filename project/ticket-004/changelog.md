@@ -8,3 +8,7 @@
   two-token change in the existing Twin CI workflow.
 - Corrected the 15-minute delivery declaration from `XS` to policy-compatible
   `S`; implementation scope and one-file budget remain unchanged.
+- Passed 58 host and networkless tests, deterministic governance, hosted
+  Linux/Windows and the real reusable workflow with zero annotations.
+- Recorded todo2code's required-LLM provider failure without fallback and used
+  the Validator LLM feedback to repair stale validation communication.

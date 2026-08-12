@@ -16,3 +16,41 @@ $ ./project/governance-check.sh --actor agent --base b20adc8075b54de9aede082bd2a
 GOV-DELIVERY-001 ERROR: Ticket ticket-004 exceeds the approved delivery class or policy budget.
 Cause: estimatedMinutes=15 exceeded the XS maximum of 10.
 Correction: retain estimatedMinutes=15 and declare allowed complexity S; no scope or budget increase.
+
+2026-08-12 completed implementation validation
+$ ./project/governance-check.sh --actor agent --base b20adc8075b54de9aede082bd2a8d9d1f60cadd9 --head HEAD
+GOV-PASS: passed (0 errors, 0 warnings)
+$ docker build -t twin-ci .
+image=sha256:374c5e50c332baf176634bde06feda4b7dee59ab383f15d22b7f0384db9b7720
+PASS
+$ docker run --rm --network none twin-ci
+Ran 58 tests in 1.329s
+OK
+
+todo2code run=20260812T002646Z-45de4690
+base=b20adc8075b54de9aede082bd2a8d9d1f60cadd9
+head=6b4130801d414117074a9af4da66ed22846f44aa
+runtime=todo2code/0.5.0
+model=z-ai/glm-5.2
+requested=nl:llm,markdown:llm,docs:llm,communication:llm,task:llm,summary:llm
+status=failed
+stage=naturalLanguageExtraction
+code=LLM_UNAVAILABLE
+provider_status=HTTP 403
+provider_reason=key weekly limit exceeded
+graph=none
+fallback=false
+
+hosted manual run=31550250931 head=6b4130801d414117074a9af4da66ed22846f44aa
+test=PASS annotations=0
+windows-governance=PASS annotations=0
+governance/enforce=PASS annotations=0
+
+Validator run=31550317756 head=6b4130801d414117074a9af4da66ed22846f44aa
+model=openrouter/z-ai/glm-5.2
+chunks=2
+trusted_review=APPROVED
+deterministic_verdict=APPROVE
+advisory_verdict=REQUEST_CHANGES
+advisory_findings=stale PR body; hosted evidence and acceptance status not yet recorded
+implementation_findings=none
