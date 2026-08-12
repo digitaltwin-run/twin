@@ -1,0 +1,78 @@
+{
+  "schema": "new-project.intent/v3",
+  "ticket": "ticket-004",
+  "summary": "Adopt Node 24 reusable governance workflow",
+  "workstream": "infrastructure",
+  "classification": {
+    "kind": "SERVICE",
+    "priority": "P1",
+    "origin": "health"
+  },
+  "allowedPaths": [
+    ".github/workflows/ci.yml",
+    "project/ticket-004/**",
+    "TODO.md",
+    "project/TICKETS.md"
+  ],
+  "forbiddenPaths": ["project/ticket-*/user-*.md"],
+  "stacks": ["github-actions", "yaml"],
+  "dependsOn": [],
+  "conflictsWith": [],
+  "integrationTicket": null,
+  "delivery": {
+    "acceptedBaseSha": "b20adc8075b54de9aede082bd2a8d9d1f60cadd9",
+    "targetBranch": "main",
+    "outcome": "Twin executes the approved reusable governance workflow whose JavaScript actions run on Node.js 24, eliminating the last owned Node.js 20 deprecation warning",
+    "nonGoals": [
+      "No managed governance package or manifest lock upgrade",
+      "No workflow job, event, permission, condition, command or Python change",
+      "No application, interface, dependency, persistent data or secret change"
+    ],
+    "complexity": "S",
+    "estimatedMinutes": 15,
+    "budgets": {
+      "maxImplementationFiles": 1,
+      "maxAffectedComponents": 1,
+      "maxPublicInterfaceChanges": 0,
+      "maxRuntimeDependencies": 0
+    },
+    "architecture": {
+      "status": "accepted",
+      "decision": "Atomically update the reusable workflow locator and its standard-ref input to the same trusted Node.js 24 merge while retaining the independently pinned local package payload",
+      "components": [
+        {
+          "name": "twin-ci-governance-caller",
+          "paths": [".github/workflows/ci.yml"]
+        }
+      ],
+      "responsibilityChanges": false,
+      "interfaceChanges": [],
+      "dataChanges": [],
+      "ui": {"impact": "none", "states": [], "evidence": []},
+      "rollback": "Revert the two SHA tokens before merging; no application or data migration exists"
+    },
+    "runtimeDependencies": [],
+    "validation": [
+      {
+        "criterion": "AC-02",
+        "commands": ["audit both standard references in .github/workflows/ci.yml"],
+        "evidence": "Both tokens equal 268311ba502cfa5306262f709e8086011c95088a"
+      },
+      {
+        "criterion": "AC-03",
+        "commands": ["GitHub Actions workflow_dispatch on the ticket head", "inspect governance check annotations"],
+        "evidence": "Reusable governance executes github-script v8 successfully with zero Node.js 20 annotations"
+      },
+      {
+        "criterion": "AC-04",
+        "commands": ["PYTHONPATH=src python3 -m unittest discover -s tests -v", "docker build -t twin-ci .", "docker run --rm --network none twin-ci", "./project/governance-check.sh --actor agent --base b20adc8075b54de9aede082bd2a8d9d1f60cadd9 --head HEAD"],
+        "evidence": "Host, networkless container and deterministic policy keep the 58-test baseline"
+      },
+      {
+        "criterion": "AC-05",
+        "commands": ["todo2code required-LLM exact-head attempt", "Validator App direct PR validation"],
+        "evidence": "Local semantics fail closed if unavailable and independent GLM review approves the exact PR head"
+      }
+    ]
+  }
+}
