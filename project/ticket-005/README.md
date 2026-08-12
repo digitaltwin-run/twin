@@ -2,8 +2,8 @@
 
 - **ID**: ticket-005
 - **Owner**: unresolved:human
-- **Status**: IN_PROGRESS
-- **Workflow state**: EDIT
+- **Status**: DONE
+- **Workflow state**: DONE
 - **Created**: 2026-08-12
 
 ## Goal and scope
@@ -23,20 +23,20 @@ informative implementation evidence rather than a runtime dependency.
 
 ## Acceptance criteria
 
-- [ ] AC-01: Record the user's request as bounded
+- [x] AC-01: Record the user's request as bounded
   `SESSION_EXECUTION_AUTHORIZATION` and keep all edits within the five declared
   implementation files plus ticket governance.
-- [ ] AC-02: Pin immutable Lifecycle, Modularity and Twinstudio artifacts by
+- [x] AC-02: Pin immutable Lifecycle, Modularity and Twinstudio artifacts by
   repository, full revision, path and SHA-256 digest in the reference profile.
-- [ ] AC-03: Enforce lifecycle evidence, replay and authority separation plus
+- [x] AC-03: Enforce lifecycle evidence, replay and authority separation plus
   evolution base revision, candidate lineage, typed module impact, event-backed
   apply/revert and regeneration/readback invariants with stable diagnostics.
-- [ ] AC-04: Expose lifecycle transition and evolution plan/apply/revert/query
+- [x] AC-04: Expose lifecycle transition and evolution plan/apply/revert/query
   semantics through protobuf-backed CLI, safe shell, REST and MCP bindings.
-- [ ] AC-05: Run reference validation, unit tests, deterministic generation,
+- [x] AC-05: Run reference validation, unit tests, deterministic generation,
   networkless Docker and governance; verify that the runtime dependency set
   remains unchanged.
-- [ ] AC-06: Run current todo2code LLM-first through SubLLM and obtain an
+- [x] AC-06: Run current todo2code LLM-first through SubLLM and obtain an
   independent exact-head Validator Agent review before merge.
 
 ## Risks and constraints
@@ -53,8 +53,35 @@ informative implementation evidence rather than a runtime dependency.
 - Limit `auto-apply-safe` to explicitly allow-listed, reversible plans. Keep
   analysis and change-plan modes free of external effects.
 
+## Validation evidence
+
+- Exact source revisions and SHA-256 digests are asserted by the reference
+  validator and negative mutation tests. The profile validates with zero
+  diagnostics.
+- Host and networkless Docker each pass all 73 tests. Ruff, Python compilation,
+  deterministic generation and governance also pass; governance reports
+  `GOV-PASS` with 0 errors and 0 warnings.
+- todo2code runs `20260812T160032Z-2dbd0a88` and
+  `20260812T160520Z-62a8cf1f` sent every requested semantic stage through
+  SubLLM to GLM-5.2 without fallback or degradation. The combined cost was
+  `$0.65304052`; useful ambiguity findings were repaired and ungrounded plans
+  were not applied.
+- Validator run `31616518821` approved exact PR head `bde2ea3` with trusted
+  deterministic authority and advisory GLM-5.2 `APPROVE`, with no findings.
+  Linux, Windows and review-governance checks passed before merge.
+- PR #9 merged as `a841321`; its implementation branch was deleted. An exact
+  `main@a841321` post-merge workflow was explicitly dispatched as run
+  `31616943617` because GitHub did not create the expected automatic push run;
+  Linux, Windows, networkless Docker and reusable governance all passed.
+
 ## Participants
 
 - Human participant: the requesting user, represented by the conversation; no
   synthetic `user-*` artifact was created.
 - Agent participant: [ai-codex.md](ai-codex.md)
+
+## Directory boundary
+
+This directory contains governance, decisions, logs and evidence only.
+Executable Twin contracts and validation remain in their declared product
+paths.

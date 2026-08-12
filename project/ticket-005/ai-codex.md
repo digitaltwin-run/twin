@@ -45,9 +45,26 @@ distinct from observations, gate evidence and authorized effect receipts.
   these were rewritten as explicit invariants. Its three generated change
   plans asked to implement already-present tests or scaffold claims and were
   rejected as ungrounded rather than auto-applied.
+- Re-ran todo2code on exact head `bde2ea3` as
+  `20260812T160520Z-62a8cf1f`. All requested stages again used GLM-5.2 through
+  SubLLM without fallback or degradation (12 calls, `$0.25322216`). Ambiguous
+  polarity conflicts fell from nine to two; both remaining pairs were the same
+  sentence extracted twice with opposite inferred polarity. Its unrelated
+  ticket-003 warning persisted despite the referenced corrective commit being
+  present, so it was recorded as a linker limitation rather than converted
+  into an ungrounded change. Total todo2code cost was `$0.65304052`.
+- Published PR #9 at exact head `bde2ea3`. Required Linux and Windows checks,
+  plus review-triggered governance, passed. Validator Agent run `31616518821`
+  reviewed all seven diff chunks through GLM-5.2 and issued trusted exact-head
+  approval with no advisory findings.
+- Merged PR #9 as `a841321` and deleted its remote and local implementation
+  branches. GitHub did not emit the expected merge-push workflow, so exact
+  `main@a841321` was explicitly dispatched as post-merge run `31616943617`;
+  Linux, Windows, networkless Docker and reusable governance all passed.
+- Completed the bounded workstream without adding a runtime dependency or
+  modifying Lifecycle, Modularity or Twinstudio source repositories.
 
 ## Blockers
 
-- None inside the recorded intent; proceed without a second confirmation.
-- New authority remains required for destructive action, secret access, new
-  external coordination, material objective expansion and trusted merge.
+- None. Trusted merge approval was supplied by Validator Agent for the exact
+  implementation head before merge.
