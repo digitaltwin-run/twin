@@ -8,3 +8,8 @@
 2026-08-11T23:56:20Z TODO2CODE mode=require-llm status=LLM_UNAVAILABLE stage=markdown reason=provider_weekly_limit no_fallback=true success_manifest=false
 2026-08-11T23:57:18Z PUBLICATION kind=branch_push head=4a6e4932210c61f73bbe92fc0a16e5ee5b37ba46 push_run=31548424492 pr=5 pr_run=31548428896
 2026-08-11T23:58:00Z HOSTED_VALIDATION head=4a6e4932210c61f73bbe92fc0a16e5ee5b37ba46 push_test=PASS push_windows=PASS pr_test=PASS pr_windows=PASS annotations=0 node20_annotations=0
+2026-08-11T23:59:15Z FINAL_HOSTED_VALIDATION head=0f7dda34f4e7733ce52422a17e3c78ee25e2d20b push_run=31548512252 pr_run=31548514398 test=PASS windows_governance=PASS
+2026-08-12T00:00:57Z VALIDATOR run=31548551075 head=0f7dda34f4e7733ce52422a17e3c78ee25e2d20b deterministic=APPROVED llm_model=openrouter/z-ai/glm-5.2 llm_chunks=2 llm_verdict=APPROVE advisory_findings=0
+2026-08-12T00:01:25Z GOVERNANCE_REVIEW run=31548660459 head=0f7dda34f4e7733ce52422a17e3c78ee25e2d20b validator_app=ifuri-validator-agent[bot] status=PASS
+2026-08-12T00:01:50Z MERGE pr=5 head=0f7dda34f4e7733ce52422a17e3c78ee25e2d20b merge_commit=e818d186f11b5b5ab95dc6d1a8074314142ef354 method=merge remote_ticket_branch=DELETED
+2026-08-12T00:02:15Z POSTMERGE_CI run=31548715935 head=e818d186f11b5b5ab95dc6d1a8074314142ef354 test=PASS windows_governance=PASS governance=PASS twin_owned_node20_annotations=0 reusable_governance_node20_followup=true

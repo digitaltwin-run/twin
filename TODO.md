@@ -8,7 +8,7 @@
 - [x] [`ticket-002`](project/ticket-002/README.md): resolve ticket-branch push
   governance against the accepted `main` merge base so incremental pushes do
   not report false stale-base failures beside authoritative PR checks.
-- [ ] [`ticket-003`](project/ticket-003/README.md): move the twin-owned CI
+- [x] [`ticket-003`](project/ticket-003/README.md): move the twin-owned CI
   checkout and Python setup steps from deprecated Node 20 action releases to
   exact published Node 24 pins without changing event or governance behavior.
 
