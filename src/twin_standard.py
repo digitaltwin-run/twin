@@ -16,7 +16,7 @@ import tempfile
 from typing import Any, Iterable
 
 
-STANDARD_VERSION = "1.1.0"
+STANDARD_VERSION = "1.2.0"
 PROFILE_SCHEMA = "twin.profile/v1"
 REQUIRED_TRAITS = {
     "reconciliation",
@@ -179,16 +179,26 @@ REQUIRED_EVOLUTION_QUEUE_STATES = {
 }
 REVISION_PATTERN = re.compile(r"^[0-9a-f]{40}$")
 DIGEST_PATTERN = re.compile(r"^sha256:[0-9a-f]{64}$")
+BLUEPRINT_ID_PATTERN = re.compile(r"^[a-z][a-z0-9._-]{0,63}$")
+BLUEPRINT_VERSION_PATTERN = re.compile(r"^v[1-9][0-9]*$")
+BLUEPRINT_URI_PATTERN = re.compile(
+    r"^lifecycle://[a-z0-9][a-z0-9.-]*/[a-z0-9][a-z0-9._-]*/(v[1-9][0-9]*)$"
+)
 REQUIRED_CONTRACT_SOURCES = {
     "lifecycle-dsl": (
         "normative",
-        "https://github.com/subactor/lifecycle",
+        "https://github.com/wellmanifest/lifecycle",
         "spec/LIFECYCLE_DSL.md",
     ),
     "modularity-workspace": (
         "normative",
-        "https://github.com/subactor/modularity",
+        "https://github.com/wellmanifest/modularity",
         "docs/schemas/modularity-workspace.schema.v1.json",
+    ),
+    "twin-lifecycle-standard": (
+        "normative",
+        "https://github.com/wellmanifest/twin-lifecycle",
+        "standard/twin-lifecycle.schema.json",
     ),
     "twinstudio-lifecycle-blueprint": (
         "informative",
@@ -729,6 +739,76 @@ def _validate_uri_process_policy(profile: dict[str, Any], diagnostics: list[Diag
         )
 
 
+def _validate_lifecycle_blueprint_ref(
+    lifecycle: dict[str, Any], diagnostics: list[Diagnostic]
+) -> None:
+    """A declared lifecycle policy must name the immutable stage graph it governs.
+
+    The blueprint document itself belongs to the separately versioned
+    `wellmanifest/twin-lifecycle` standard. A profile pins one revision of it by
+    definition URI and canonical content digest; it never inlines stages,
+    criteria or approver identities.
+    """
+    path = "$.lifecycle.blueprintRef"
+    raw = lifecycle.get("blueprintRef")
+    if not isinstance(raw, dict):
+        _add(
+            diagnostics,
+            "TWIN-LIFECYCLE-001",
+            path,
+            "must pin one immutable lifecycle blueprint revision",
+        )
+        return
+    if set(raw) != {
+        "blueprintId",
+        "version",
+        "definitionUri",
+        "definitionDigest",
+        "immutable",
+    }:
+        _add(
+            diagnostics,
+            "TWIN-LIFECYCLE-001",
+            path,
+            "must declare exactly blueprintId, version, definitionUri, definitionDigest and immutable",
+        )
+        return
+    if not BLUEPRINT_ID_PATTERN.fullmatch(str(raw.get("blueprintId", ""))):
+        _add(diagnostics, "TWIN-LIFECYCLE-001", path + ".blueprintId", "must be a stable identifier")
+    version = str(raw.get("version", ""))
+    if not BLUEPRINT_VERSION_PATTERN.fullmatch(version):
+        _add(diagnostics, "TWIN-LIFECYCLE-001", path + ".version", "must be a positive vN revision")
+    uri = BLUEPRINT_URI_PATTERN.fullmatch(str(raw.get("definitionUri", "")))
+    if uri is None:
+        _add(
+            diagnostics,
+            "TWIN-LIFECYCLE-001",
+            path + ".definitionUri",
+            "must be a canonical lifecycle://authority/blueprint/vN definition URI",
+        )
+    elif uri.group(1) != version:
+        _add(
+            diagnostics,
+            "TWIN-LIFECYCLE-001",
+            path + ".definitionUri",
+            "must resolve to the declared blueprint version",
+        )
+    if not DIGEST_PATTERN.fullmatch(str(raw.get("definitionDigest", ""))):
+        _add(
+            diagnostics,
+            "TWIN-LIFECYCLE-001",
+            path + ".definitionDigest",
+            "must be sha256 followed by 64 lowercase hexadecimal characters",
+        )
+    if raw.get("immutable") is not True:
+        _add(
+            diagnostics,
+            "TWIN-LIFECYCLE-001",
+            path + ".immutable",
+            "a bound blueprint revision must be immutable",
+        )
+
+
 def _validate_lifecycle_and_evolution(profile: dict[str, Any], diagnostics: list[Diagnostic]) -> None:
     lifecycle = _dict(profile.get("lifecycle"))
     for field in (
@@ -754,6 +834,7 @@ def _validate_lifecycle_and_evolution(profile: dict[str, Any], diagnostics: list
             "$.lifecycle.transitionStatuses",
             "must declare exactly REQUESTED, APPROVED, BLOCKED and REJECTED",
         )
+    _validate_lifecycle_blueprint_ref(lifecycle, diagnostics)
     if lifecycle.get("replayExecutesTransitions") is not False:
         _add(
             diagnostics,
@@ -1792,6 +1873,7 @@ def _conformance_document(profile: dict[str, Any]) -> dict[str, Any]:
         "process-step-receipts-idempotent",
         "process-replay-observe-only",
         "actor-identity-is-not-authority",
+        "lifecycle-blueprint-revision-pinned",
         "lifecycle-transition-evidence-gated",
         "lifecycle-approval-is-not-authority",
         "lifecycle-replay-observe-only",
