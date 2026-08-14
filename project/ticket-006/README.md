@@ -2,8 +2,8 @@
 
 - **ID**: ticket-006
 - **Owner**: unresolved:human
-- **Status**: IN_PROGRESS
-- **Workflow state**: PUBLICATION
+- **Status**: DONE
+- **Workflow state**: DONE
 - **Created**: 2026-08-14
 
 ## Goal and scope
@@ -86,6 +86,10 @@ inlined into a profile.
   the required checks `test` and `windows-governance` pass at the exact head.
   The `governance` job is skipped on `pull_request` by design and is listed in
   `circularGovernanceChecksIgnoredByValidator`.
+- Validator run approved exact head `c859ae6` with deterministic authority and
+  advisory GLM-5.2 `APPROVE`, no findings, correlation
+  `twin-pr-11-ticket-006-c859ae6e74`. PR #11 merged as `f65763d` and its branch
+  was deleted; 74 tests pass on the integrated default branch.
 - Both corrected provenance URLs were re-verified: the GitHub API resolves
   `subactor/lifecycle` and `subactor/modularity` to their `wellmanifest`
   locations, and the pinned artifact digests recompute unchanged at
