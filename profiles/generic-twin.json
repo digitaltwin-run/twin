@@ -2,7 +2,7 @@
   "$schema": "https://subactor.dev/twin/profile/v1",
   "schema": "twin.profile/v1",
   "id": "generic-all-traits",
-  "version": 2,
+  "version": 3,
   "description": "Language-neutral reference Twin with every standard trait",
   "aggregate": {
     "type": "GenericTwin",
@@ -72,7 +72,7 @@
     {
       "id": "lifecycle-dsl",
       "role": "normative",
-      "repository": "https://github.com/subactor/lifecycle",
+      "repository": "https://github.com/wellmanifest/lifecycle",
       "revision": "f3b8e13eb17128fd0f3ff05ac45fc99c99c470c4",
       "artifact": "spec/LIFECYCLE_DSL.md",
       "digest": "sha256:358c6718838a9f8e74cf95db83ffdda5b63b5df6d4369c36682b7583272dc465"
@@ -80,10 +80,18 @@
     {
       "id": "modularity-workspace",
       "role": "normative",
-      "repository": "https://github.com/subactor/modularity",
+      "repository": "https://github.com/wellmanifest/modularity",
       "revision": "1c8c94ee7e13ab95af3ab734b9548ebdfc4a7c20",
       "artifact": "docs/schemas/modularity-workspace.schema.v1.json",
       "digest": "sha256:98db51af5b17e9a480f587f462da52aafd70d8b40ae87d873d7a42fdd4fd5a68"
+    },
+    {
+      "id": "twin-lifecycle-standard",
+      "role": "normative",
+      "repository": "https://github.com/wellmanifest/twin-lifecycle",
+      "revision": "6ca123f32c8a448a28b99cd68ca2e5b2ae4f83fa",
+      "artifact": "standard/twin-lifecycle.schema.json",
+      "digest": "sha256:1da3f85aae2895d31eed491e4189026cb725fa0395a7601e0e7b615a20e10cfe"
     },
     {
       "id": "twinstudio-lifecycle-blueprint",
@@ -165,7 +173,14 @@
     "repeatableFeedbackStagesAllowed": true,
     "transitionsEventBacked": true,
     "replayExecutesTransitions": false,
-    "transitionStatuses": ["REQUESTED", "APPROVED", "BLOCKED", "REJECTED"]
+    "transitionStatuses": ["REQUESTED", "APPROVED", "BLOCKED", "REJECTED"],
+    "blueprintRef": {
+      "blueprintId": "twin-reference",
+      "version": "v1",
+      "definitionUri": "lifecycle://wellmanifest.dev/twin-reference/v1",
+      "definitionDigest": "sha256:cd1795c6befea022e8a21d4f5e4c0c66f9b6eb86a5c32803ff569f44f93743ad",
+      "immutable": true
+    }
   },
   "modularity": {
     "workspaceSchema": "subactor.modularity/workspace/v1",

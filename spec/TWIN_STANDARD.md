@@ -21,10 +21,14 @@ contracts, recorded in every conforming profile as repository, full revision,
 artifact path and `sha256:` digest:
 
 - Lifecycle DSL v1 is the normative finite-state, evidence and diagnostic
-  contract (`subactor/lifecycle@f3b8e13eb17128fd0f3ff05ac45fc99c99c470c4`);
+  contract (`wellmanifest/lifecycle@f3b8e13eb17128fd0f3ff05ac45fc99c99c470c4`);
+- Twin Lifecycle v1 is the normative blueprint contract: the stage graph,
+  entry/exit criteria, permitted transitions, approver roles and transition
+  document families this standard's lifecycle trait operates against
+  (`wellmanifest/twin-lifecycle@6ca123f32c8a448a28b99cd68ca2e5b2ae4f83fa`);
 - Modularity Workspace v1 is the normative module graph, ownership, contract,
   layer and bounded-analysis contract
-  (`subactor/modularity@1c8c94ee7e13ab95af3ab734b9548ebdfc4a7c20`);
+  (`wellmanifest/modularity@1c8c94ee7e13ab95af3ab734b9548ebdfc4a7c20`);
 - Twinstudio lifecycle-blueprint and evolution-run schemas are informative
   implementation evidence for lifecycle tailoring, candidate lineage,
   event-backed change queues, compensating undo and artifact regeneration
@@ -172,6 +176,18 @@ evidence requirements, approver roles and whether a feedback stage is
 repeatable. A lifecycle transition is a command evaluated against the current
 stage and aggregate revision. Unmentioned transitions fail closed.
 
+The blueprint document itself is defined by the Twin Lifecycle v1 source
+contract, which also owns its graph rules — reachability, terminal stages,
+repeatable feedback targets and the criteria contract — and its `TWINLC-*`
+diagnostics. A profile that declares the `lifecycle` trait MUST pin exactly one
+blueprint revision as `blueprintId`, `version`, a canonical
+`lifecycle://authority/blueprint/vN` definition URI, a `sha256:` digest over
+the blueprint's canonical content and `immutable: true`. The declared version
+MUST equal the definition URI's version segment. A profile MUST NOT inline
+stages, criteria, approver identities or transition tables: policy lives here,
+the stage graph lives in the pinned blueprint, and re-serializing a blueprint
+cannot silently rebind a running Twin because the digest is content-canonical.
+
 Every requested transition records its source and target stage, base revision,
 status (`REQUESTED`, `APPROVED`, `BLOCKED` or `REJECTED`), evidence references,
 unmet criteria and approving actor when applicable. Evidence identifiers name
@@ -278,8 +294,10 @@ A `twin.profile/v1` JSON object declares:
 - one canonical URI, capability identity and risk class for every operation;
 - URI resolution, process-runtime and human-task safety policy;
 - at least one immutable process definition with an acyclic step graph;
-- immutable Lifecycle, Modularity and Twinstudio source-contract provenance;
-- lifecycle gate/evidence/replay policy and modular evolution policy;
+- immutable Lifecycle, Twin Lifecycle, Modularity and Twinstudio
+  source-contract provenance;
+- lifecycle gate/evidence/replay policy, one pinned immutable blueprint
+  revision, and modular evolution policy;
 - revision-pinned candidate lineage, typed module impact and apply/revert rules;
 - complete CLI, shell, REST and MCP bindings;
 - the four deterministic generator outputs.
@@ -317,7 +335,7 @@ sorted by code and JSON path. Stable diagnostic families are:
 | `TWIN-CAPABILITY-001` | Capability resolution, risk or fail-closed gap policy is incomplete. |
 | `TWIN-PROCESS-001` | A process DAG, step execution policy, run state or human-task boundary is unsafe. |
 | `TWIN-SOURCE-001` | An upstream contract lacks immutable revision/content provenance. |
-| `TWIN-LIFECYCLE-001` | Lifecycle gates, evidence, transition states or replay semantics are unsafe. |
+| `TWIN-LIFECYCLE-001` | Lifecycle gates, evidence, transition states, the pinned blueprint reference or replay semantics are unsafe. |
 | `TWIN-MODULARITY-001` | Module graph, ownership, contracts, layers or analysis scope are unsafe. |
 | `TWIN-EVOLUTION-001` | Candidate lineage, change modes, apply/revert or verification semantics are unsafe. |
 

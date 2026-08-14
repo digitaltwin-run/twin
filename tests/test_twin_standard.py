@@ -254,6 +254,10 @@ class TwinStandardTests(unittest.TestCase):
                 "4183807d9be0bb2a39149ddea494a224286f5dbb",
                 "sha256:d1d72f779fa137d3997149dc84a8c6bc5dd4a10f335f1149a4fca301694aafa6",
             ),
+            "twin-lifecycle-standard": (
+                "6ca123f32c8a448a28b99cd68ca2e5b2ae4f83fa",
+                "sha256:1da3f85aae2895d31eed491e4189026cb725fa0395a7601e0e7b615a20e10cfe",
+            ),
         }
         self.assertEqual(
             expected,
@@ -286,11 +290,12 @@ class TwinStandardTests(unittest.TestCase):
         self.assertEqual([], twin_standard.validate_profile(self._fixture(mutate)))
 
     def test_twinstudio_evidence_must_use_one_coherent_revision(self):
-        profile = self._fixture(
-            lambda value: value["contractSources"][2].__setitem__(
-                "revision", "a" * 40
-            )
-        )
+        def mutate(value):
+            for source in value["contractSources"]:
+                if source["id"] == "twinstudio-lifecycle-blueprint":
+                    source["revision"] = "a" * 40
+
+        profile = self._fixture(mutate)
         diagnostics = twin_standard.validate_profile(profile)
         self.assertTrue(
             any(item.code == "TWIN-SOURCE-001" and "coherent" in item.message for item in diagnostics)
@@ -305,6 +310,36 @@ class TwinStandardTests(unittest.TestCase):
         codes = self._codes(self._fixture(mutate))
         self.assertIn("TWIN-LIFECYCLE-001", codes)
         self.assertIn("TWIN-AUTH-001", codes)
+
+    def test_lifecycle_trait_must_pin_one_immutable_blueprint_revision(self):
+        reference = self._document()["lifecycle"]["blueprintRef"]
+        self.assertTrue(reference["immutable"])
+        self.assertEqual("lifecycle://wellmanifest.dev/twin-reference/v1", reference["definitionUri"])
+        for description, mutation in (
+            ("absent", lambda value: value["lifecycle"].pop("blueprintRef")),
+            ("not an object", lambda value: value["lifecycle"].__setitem__("blueprintRef", "twin-reference")),
+            ("mutable", lambda value: value["lifecycle"]["blueprintRef"].__setitem__("immutable", False)),
+            (
+                "unpinned content",
+                lambda value: value["lifecycle"]["blueprintRef"].__setitem__("definitionDigest", "sha256:short"),
+            ),
+            (
+                "branch instead of a definition URI",
+                lambda value: value["lifecycle"]["blueprintRef"].__setitem__(
+                    "definitionUri", "https://github.com/wellmanifest/twin-lifecycle/tree/main"
+                ),
+            ),
+            (
+                "version disagreeing with the definition URI",
+                lambda value: value["lifecycle"]["blueprintRef"].__setitem__("version", "v2"),
+            ),
+            (
+                "inlined stage list",
+                lambda value: value["lifecycle"]["blueprintRef"].__setitem__("stages", ["concept"]),
+            ),
+        ):
+            with self.subTest(blueprint=description):
+                self.assertIn("TWIN-LIFECYCLE-001", self._codes(self._fixture(mutation)))
 
     def test_lifecycle_and_evolution_replay_are_observe_only(self):
         def mutate(value):
@@ -628,10 +663,12 @@ class TwinStandardTests(unittest.TestCase):
         self.assertEqual(len(document["contractSources"]), len(source_cases))
         invariant_ids = {item["id"] for item in conformance["cases"] if item["kind"] == "semantic-invariant"}
         self.assertIn("invariant.lifecycle-approval-is-not-authority", invariant_ids)
+        self.assertIn("invariant.lifecycle-blueprint-revision-pinned", invariant_ids)
+        self.assertEqual(document["lifecycle"]["blueprintRef"], transport["lifecycle"]["blueprintRef"])
         self.assertIn("invariant.module-contract-revisions-pinned", invariant_ids)
         self.assertIn("invariant.apply-revert-regenerate-and-readback", invariant_ids)
-        self.assertEqual("1.1.0", manifest["standardVersion"])
-        self.assertEqual(5, manifest["contractSources"])
+        self.assertEqual("1.2.0", manifest["standardVersion"])
+        self.assertEqual(6, manifest["contractSources"])
         self.assertEqual(4, manifest["evolutionOperations"])
 
     def test_existing_destination_is_never_overwritten(self):
