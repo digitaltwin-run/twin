@@ -1,0 +1,87 @@
+{
+  "schema": "new-project.intent/v3",
+  "ticket": "ticket-006",
+  "summary": "Bind the twin lifecycle blueprint standard",
+  "workstream": "application",
+  "classification": {
+    "kind": "FEATURE",
+    "priority": "P1",
+    "origin": "requested"
+  },
+  "allowedPaths": [
+    "spec/TWIN_STANDARD.md",
+    "profiles/generic-twin.json",
+    "src/twin_standard.py",
+    "tests/test_twin_standard.py",
+    "project/ticket-006/**",
+    "TODO.md",
+    "project/TICKETS.md"
+  ],
+  "forbiddenPaths": ["project/ticket-*/user-*.md"],
+  "stacks": ["python", "protobuf", "docker"],
+  "dependsOn": [],
+  "conflictsWith": [],
+  "integrationTicket": null,
+  "delivery": {
+    "acceptedBaseSha": "6e53bc33a219d6a99b480e3203d40352ff63ce5f",
+    "targetBranch": "main",
+    "outcome": "A conforming profile must pin the immutable lifecycle blueprint revision its declared lifecycle trait operates under, so the stage graph behind LifecycleBlueprintRef is a reviewed contract instead of an unmodelled assertion",
+    "nonGoals": [
+      "No stage-graph validator inside twin; wellmanifest/twin-lifecycle owns blueprint graph rules and their TWINLC diagnostics",
+      "No protobuf change; LifecycleBlueprintRef already carries the reference fields",
+      "No new required trait, operation, transport binding or runtime dependency",
+      "No blueprint content, stage list or approver identity embedded in the twin profile",
+      "No claim that a lifecycle gate, approval or blueprint reference grants execution authority"
+    ],
+    "complexity": "S",
+    "estimatedMinutes": 30,
+    "budgets": {
+      "maxImplementationFiles": 4,
+      "maxAffectedComponents": 2,
+      "maxPublicInterfaceChanges": 0,
+      "maxRuntimeDependencies": 0
+    },
+    "architecture": {
+      "status": "accepted",
+      "decision": "Add wellmanifest/twin-lifecycle as a required normative contract source and require $.lifecycle.blueprintRef to pin one immutable blueprint revision by definition URI and canonical sha256 digest; keep graph semantics in the external standard and correct the transferred lifecycle-dsl repository URL to its current immutable location",
+      "components": [
+        {
+          "name": "twin-lifecycle-blueprint-binding",
+          "paths": ["spec/TWIN_STANDARD.md", "profiles/generic-twin.json"]
+        },
+        {
+          "name": "twin-validator-conformance",
+          "paths": ["src/twin_standard.py", "tests/test_twin_standard.py"]
+        }
+      ],
+      "responsibilityChanges": false,
+      "interfaceChanges": [],
+      "dataChanges": [],
+      "ui": {"impact": "none", "states": [], "evidence": []},
+      "rollback": "Revert ticket-006; profiles without $.lifecycle.blueprintRef remain identifiable by the prior profile version and contract hashes"
+    },
+    "runtimeDependencies": [],
+    "validation": [
+      {
+        "criterion": "AC-01",
+        "commands": ["PYTHONPATH=src python3 -m twin_standard validate profiles/generic-twin.json"],
+        "evidence": "The reference profile pins the twin-lifecycle standard revision plus artifact digest and one immutable blueprint revision, and validates with exit status 0"
+      },
+      {
+        "criterion": "AC-02",
+        "commands": ["PYTHONPATH=src python3 -m unittest discover -s tests -v"],
+        "evidence": "Mutation tests reject a missing, mutable, malformed or unpinned blueprint reference and a missing twin-lifecycle source contract with stable TWIN-LIFECYCLE-001 and TWIN-SOURCE-001 diagnostics"
+      },
+      {
+        "criterion": "AC-03",
+        "commands": ["PYTHONPATH=src python3 -m twin_standard generate profiles/generic-twin.json --out /tmp/twin-006 --language rust"],
+        "evidence": "The generated transport map carries the pinned blueprint reference and generation stays byte-identical for equal inputs"
+      },
+      {
+        "criterion": "AC-04",
+        "commands": ["docker build -t twin-ci .", "docker run --rm --network none twin-ci", "./project/governance-check.sh --actor agent --base 6e53bc33a219d6a99b480e3203d40352ff63ce5f --head HEAD"],
+        "evidence": "Host, networkless Docker and governance pass within four implementation files and no runtime dependencies"
+      }
+    ]
+  }
+}
