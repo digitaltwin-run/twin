@@ -3,7 +3,7 @@
 - **ID**: ticket-006
 - **Owner**: unresolved:human
 - **Status**: IN_PROGRESS
-- **Workflow state**: VALIDATION
+- **Workflow state**: PUBLICATION
 - **Created**: 2026-08-14
 
 ## Goal and scope
@@ -78,6 +78,14 @@ inlined into a profile.
   --all` in `wellmanifest/twin-lifecycle@6ca123f` accepts four canonical
   documents and rejects 24 adversarial mutations with their declared `TWINLC-*`
   codes.
+- `wellmanifest/twin-lifecycle` was published; the pinned artifact digest
+  recomputes to `sha256:1da3f85a…` when fetched from revision `6ca123f`
+  through the GitHub API, so the recorded provenance resolves without a
+  redirect or a local checkout.
+- PR [#11](https://github.com/subactor/twin/pull/11) is open against `main`;
+  the required checks `test` and `windows-governance` pass at the exact head.
+  The `governance` job is skipped on `pull_request` by design and is listed in
+  `circularGovernanceChecksIgnoredByValidator`.
 - Both corrected provenance URLs were re-verified: the GitHub API resolves
   `subactor/lifecycle` and `subactor/modularity` to their `wellmanifest`
   locations, and the pinned artifact digests recompute unchanged at
