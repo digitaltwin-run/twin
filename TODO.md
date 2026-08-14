@@ -2,12 +2,12 @@
 
 ## Active
 
-- [ ] [`ticket-006`](project/ticket-006/README.md): bind the lifecycle trait to
+- [x] [`ticket-006`](project/ticket-006/README.md): bind the lifecycle trait to
   an immutable blueprint revision from the separately versioned
   `wellmanifest/twin-lifecycle` standard, so the stage graph behind
   `LifecycleBlueprintRef` is a reviewed contract instead of an unmodelled
   assertion, and correct the transferred `lifecycle`/`modularity` provenance
-  URLs. Status: `IN_PROGRESS / PUBLICATION`; PR #11 open with required checks passing; classification:
+  URLs. Status: `DONE / DONE`; PR #11 merged as `f65763d` after exact-head Validator approval; classification:
   `FEATURE / P1 / requested`.
 
 - [x] [`ticket-005`](project/ticket-005/README.md): add evidence-gated
