@@ -7,7 +7,7 @@
   `wellmanifest/twin-lifecycle` standard, so the stage graph behind
   `LifecycleBlueprintRef` is a reviewed contract instead of an unmodelled
   assertion, and correct the transferred `lifecycle`/`modularity` provenance
-  URLs. Status: `IN_PROGRESS / EDIT`; classification:
+  URLs. Status: `IN_PROGRESS / VALIDATION`; classification:
   `FEATURE / P1 / requested`.
 
 - [x] [`ticket-005`](project/ticket-005/README.md): add evidence-gated

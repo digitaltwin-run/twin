@@ -3,7 +3,7 @@
 - **ID**: ticket-006
 - **Owner**: unresolved:human
 - **Status**: IN_PROGRESS
-- **Workflow state**: EDIT
+- **Workflow state**: VALIDATION
 - **Created**: 2026-08-14
 
 ## Goal and scope
@@ -61,7 +61,27 @@ inlined into a profile.
 
 ## Validation evidence
 
-- To be completed from the recorded implementation run.
+- `python3 -m twin_standard validate profiles/generic-twin.json` reports
+  `VALID Twin profile` with exit status `0`.
+- 74 tests pass on the host and in the networkless Docker image
+  (`docker run --rm --network none twin-ci`), including the seven-case
+  blueprint mutation subtest.
+- `./project/governance-check.sh --actor agent --base 6e53bc3 --head HEAD`
+  reports `GOV-PASS` with 0 errors and 0 warnings.
+- Generation emits four files; `transport-map.json` carries the pinned
+  `blueprintRef` and `conformance.json` contains 127 cases including
+  `invariant.lifecycle-blueprint-revision-pinned`.
+- Ruff and mypy report exactly the same pre-existing findings on the two
+  touched files as the accepted base (9 and 8 respectively); this change adds
+  none. Runtime dependencies remain empty.
+- The pinned upstream revision is self-verifying: `standard/conformance.py
+  --all` in `wellmanifest/twin-lifecycle@6ca123f` accepts four canonical
+  documents and rejects 24 adversarial mutations with their declared `TWINLC-*`
+  codes.
+- Both corrected provenance URLs were re-verified: the GitHub API resolves
+  `subactor/lifecycle` and `subactor/modularity` to their `wellmanifest`
+  locations, and the pinned artifact digests recompute unchanged at
+  `f3b8e13` and `1c8c94e`.
 
 ## Participants
 
