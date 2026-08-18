@@ -9,8 +9,8 @@ business runtimes.
 The first reference profile consolidates traits observed in:
 
 - `bioxfoundry/twin-dsl`;
-- `subactor/twin-cloudflare`, `twin-onedev`, `twin-orgcore`, `twin-plesk`,
-  `twin-probes`, `twin-slack` and `twin-smtp`;
+- `digitaltwin-run/{plesk-service-twin,twin-plesk,twin-cloudflare,twin-onedev,twin-orgcore,twin-slack,twin-smtp}`;
+- `subactor/twin-probes` (governance, not a service twin);
 - Subactor SODL replay and connector boundaries;
 - the Founder DSL CQRS/Event Sourcing implementation.
 
