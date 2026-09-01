@@ -1,0 +1,6 @@
+2026-09-01T19:11:59Z AUTH SESSION_EXECUTION_AUTHORIZATION issue=subactor/twin#14
+2026-09-01T19:12:00Z RECOVERY ref=refs/recovery/2026-09-01/twin-reference-digitaltwin-run commit=20a612a32ada929f8de186f42cd00a8d96188ee7 patch_sha256=3b5692c0a3388b421e908e347f5e24b38343951a56b55f6a7d379903322b311f
+2026-09-01T19:13:00Z OBSERVE github legacy_service_repos=not_found digitaltwin_run_snapshot_repos=not_found subactor/twin-probes=live
+2026-09-01T19:20:00Z VALIDATION host_unittest=PASS count=74
+2026-09-01T19:21:00Z GOVERNANCE status=PASS errors=0 warnings=0
+2026-09-01T19:22:00Z DOCKER build=PASS image=sha256:9aa92fd287ad1806d533d926ac1a2ba29056d8a34c127fe773744c2b294d1a75 network=none tests=PASS count=74

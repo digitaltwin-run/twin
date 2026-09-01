@@ -9,10 +9,15 @@ business runtimes.
 The first reference profile consolidates traits observed in:
 
 - `bioxfoundry/twin-dsl`;
-- `subactor/twin-cloudflare`, `twin-onedev`, `twin-orgcore`, `twin-plesk`,
-  `twin-probes`, `twin-slack` and `twin-smtp`;
+- exported provider snapshots retained under the local `digitaltwin-run`
+  workspace names `plesk-service-twin`, `twin-plesk`, `twin-cloudflare`,
+  `twin-onedev`, `twin-orgcore`, `twin-slack` and `twin-smtp`;
+- the live `subactor/twin-probes` governance and diagnostic-probe source;
 - Subactor SODL replay and connector boundaries;
 - the Founder DSL CQRS/Event Sourcing implementation.
+
+The exported provider snapshots are fingerprinted provenance inputs, not
+public GitHub repositories or runtime dependencies.
 
 ## Planned command contract
 

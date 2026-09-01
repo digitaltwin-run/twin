@@ -2,6 +2,12 @@
 
 ## Active
 
+- [ ] [`ticket-010`](project/ticket-010/README.md): recover the useful source
+  correction from closed PR #13 while distinguishing live repositories from
+  local exported provider snapshots. Status: `IN_PROGRESS / PUBLICATION`;
+  classification: `BUG / P1 / regression`; successor PR will close GitHub
+  issue #14 without merging or deleting the recovery ref.
+
 - [x] [`ticket-006`](project/ticket-006/README.md): bind the lifecycle trait to
   an immutable blueprint revision from the separately versioned
   `wellmanifest/twin-lifecycle` standard, so the stage graph behind
