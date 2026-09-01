@@ -15,3 +15,11 @@ twin-standard = "twin_standard:main"
 [tool.setuptools]
 py-modules = ["twin_standard"]
 package-dir = {"" = "src"}
+
+[tool.wellmanifest]
+standard = "0.19.22"
+revision = "f7fe7163e886d5540cedf83d383b6dd99daafd7c"
+gate = "project/governance-check.sh"
+
+[tool.pytest.ini_options]
+addopts = "-p wellmanifest_governance"

@@ -1,0 +1,98 @@
+{
+  "schema": "new-project.intent/v3",
+  "ticket": "ticket-011",
+  "summary": "Adopt the published wellmanifest/new-project 0.19.22 package",
+  "workstream": "integration",
+  "classification": {
+    "kind": "SERVICE",
+    "priority": "P1",
+    "origin": "requested"
+  },
+  "allowedPaths": [
+    ".governance/manifest.json",
+    ".governance/manifest.lock.json",
+    ".governance/required-checks.json",
+    ".governance/standard-adoption.json",
+    ".governance/ticket-allocation.json",
+    "TODO.md",
+    "pyproject.toml",
+    "project/TICKETS.md",
+    "project/ticket-011/**"
+  ],
+  "forbiddenPaths": ["project/ticket-*/user-*.md"],
+  "stacks": ["python", "docker"],
+  "dependsOn": [],
+  "conflictsWith": [],
+  "integrationTicket": null,
+  "delivery": {
+    "acceptedBaseSha": "e8d15fcaadc427ec4e6e896c19a4d46671ea9cb6",
+    "targetBranch": "main",
+    "outcome": "Twin uses the published immutable new-project 0.19.22 package at f7fe7163e886d5540cedf83d383b6dd99daafd7c, including the current material-delivery intent gate, while its runtime and documentation remain unchanged",
+    "nonGoals": [
+      "No Twin runtime, profile, protocol, test-contract or product documentation change",
+      "No merge, ruleset mutation, branch cleanup or removal of legacy /tmp worktrees",
+      "No modification of the ticket-010 recovery already integrated by PR #16",
+      "No local or unpublished standard source and no moving revision"
+    ],
+    "complexity": "S",
+    "estimatedMinutes": 20,
+    "standardAdoption": {
+      "sourceRepository": "wellmanifest/new-project",
+      "fromRevision": "3549d21a5a31fea87b2dd4da37d8e8bd793f20f6",
+      "toRevision": "f7fe7163e886d5540cedf83d383b6dd99daafd7c"
+    },
+    "budgets": {
+      "maxImplementationFiles": 5,
+      "maxAffectedComponents": 2,
+      "maxPublicInterfaceChanges": 0,
+      "maxRuntimeDependencies": 0
+    },
+    "architecture": {
+      "status": "accepted",
+      "decision": "Use Goal 2.1.300 to preflight and upgrade only the exact published package SHA; keep repository-specific manifest and required-check declarations as reviewed target extensions, bind the Python packaging lifecycle to the managed gate, and let the adoption lock authenticate every managed payload",
+      "components": [
+        {
+          "name": "new-project-managed-package",
+          "paths": ["AGENTS.md", "CLAUDE.md", "GEMINI.md", ".aider.conf.yml", ".cursor/**", ".githooks/**", ".github/**", "project/governance-check.bat", "project/governance-check.sh", "project/new-ticket.sh", "scripts/**", "wellmanifest_governance.py", "worktree-guard.yaml"]
+        },
+        {
+          "name": "target-adoption-integration",
+          "paths": [".governance/**", "pyproject.toml"]
+        }
+      ],
+      "responsibilityChanges": false,
+      "interfaceChanges": [],
+      "dataChanges": [],
+      "ui": {"impact": "none", "states": [], "evidence": []},
+      "rollback": "Revert this unmerged adoption commit; the prior published 0.14.1 lock and managed payload remain reconstructible from accepted base e8d15fcaadc427ec4e6e896c19a4d46671ea9cb6"
+    },
+    "runtimeDependencies": [],
+    "validation": [
+      {
+        "criterion": "AC-01",
+        "commands": ["goal governance adopt --source-revision f7fe7163e886d5540cedf83d383b6dd99daafd7c --target-root . --check", "goal governance adopt --source-revision f7fe7163e886d5540cedf83d383b6dd99daafd7c --target-root . --upgrade"],
+        "evidence": "The reviewed preflight is write-free and the resulting lock records published version 0.19.22 at the exact requested source revision"
+      },
+      {
+        "criterion": "AC-02",
+        "commands": ["PYTHONPATH=src python3 -m unittest discover -s tests -v"],
+        "evidence": "All Twin host tests pass without a runtime or documentation delta"
+      },
+      {
+        "criterion": "AC-03",
+        "commands": ["docker build -t twin-ticket-011 .", "docker run --rm --network none twin-ticket-011"],
+        "evidence": "The immutable container build passes the same full suite without network access"
+      },
+      {
+        "criterion": "AC-04",
+        "commands": ["./project/governance-check.sh --actor agent --base e8d15fcaadc427ec4e6e896c19a4d46671ea9cb6 --head HEAD"],
+        "evidence": "Exact-range governance accepts the atomic standardAdoption transaction and does not require a carrier-only baseline commit"
+      },
+      {
+        "criterion": "AC-05",
+        "commands": ["./scripts/install-agent-hosts.sh --check", "PYTHONPATH=src python3 -m pytest --collect-only -q"],
+        "evidence": "The clone uses the managed pre-commit hook and Python package metadata invokes the pinned governance plugin automatically"
+      }
+    ]
+  }
+}
