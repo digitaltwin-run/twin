@@ -1,0 +1,77 @@
+{
+  "schema": "new-project.intent/v3",
+  "ticket": "ticket-012",
+  "summary": "Use exact ranges in legacy Twin CI",
+  "workstream": "infrastructure",
+  "classification": {
+    "kind": "BUG",
+    "priority": "P1",
+    "origin": "regression"
+  },
+  "allowedPaths": [
+    ".github/workflows/ci.yml",
+    "project/TICKETS.md",
+    "project/ticket-012/**"
+  ],
+  "forbiddenPaths": ["project/ticket-*/user-*.md"],
+  "stacks": [],
+  "dependsOn": [],
+  "conflictsWith": [],
+  "integrationTicket": null,
+  "delivery": {
+    "acceptedBaseSha": "50f2a8620db8e6ad6d0f76400699d122f8f0c084",
+    "targetBranch": "main",
+    "outcome": "The legacy Twin CI workflow validates the real exact event range on default-branch pushes, so material-delivery and adoption-sync checks observe the merged change instead of a synthetic ticket-only path",
+    "nonGoals": [
+      "No Twin runtime, test or product-documentation change",
+      "No reusable new-project workflow, action revision or repository-ruleset change",
+      "No change to pull-request, review or manual-dispatch range semantics"
+    ],
+    "complexity": "XS",
+    "estimatedMinutes": 10,
+    "budgets": {
+      "maxImplementationFiles": 1,
+      "maxAffectedComponents": 1,
+      "maxPublicInterfaceChanges": 0,
+      "maxRuntimeDependencies": 0
+    },
+    "architecture": {
+      "status": "accepted",
+      "decision": "Use the immutable push event before SHA as the governance base on the default branch and apply the same fail-closed full-SHA validation already used for pull-request events",
+      "components": [
+        {
+          "name": "legacy-twin-ci",
+          "paths": [".github/workflows/ci.yml"]
+        }
+      ],
+      "responsibilityChanges": false,
+      "interfaceChanges": [],
+      "dataChanges": [],
+      "ui": {"impact": "none", "states": [], "evidence": []},
+      "rollback": "Revert the unmerged ticket commit; accepted base 50f2a8620db8e6ad6d0f76400699d122f8f0c084 remains unchanged"
+    },
+    "runtimeDependencies": [],
+    "validation": [
+      {
+        "criterion": "AC-01",
+        "commands": ["Inspect the Linux event-range branch in .github/workflows/ci.yml"],
+        "evidence": "A default-branch push resolves base from EVENT_BASE, validates a non-zero full SHA and invokes governance with exact base and head"
+      },
+      {
+        "criterion": "AC-02",
+        "commands": ["Inspect the PowerShell event-range branch in .github/workflows/ci.yml"],
+        "evidence": "Windows applies the same exact event-base validation and invocation"
+      },
+      {
+        "criterion": "AC-03",
+        "commands": ["git diff --check", "Parse .github/workflows/ci.yml as YAML"],
+        "evidence": "The workflow is syntactically valid and the existing non-default event paths and action pins are preserved"
+      },
+      {
+        "criterion": "AC-04",
+        "commands": ["PYTHONPATH=src python3 -m unittest discover -s tests -q", "docker build -t twin-ticket-012 .", "docker run --rm --network none twin-ticket-012", "./project/governance-check.sh --actor agent --base 50f2a8620db8e6ad6d0f76400699d122f8f0c084 --head HEAD"],
+        "evidence": "Host tests, networkless container tests and exact-range governance pass"
+      }
+    ]
+  }
+}
