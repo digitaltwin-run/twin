@@ -1,0 +1,77 @@
+{
+  "schema": "new-project.intent/v3",
+  "ticket": "ticket-013",
+  "summary": "Respect terminal merge receipts in legacy Twin CI",
+  "workstream": "infrastructure",
+  "classification": {
+    "kind": "BUG",
+    "priority": "P1",
+    "origin": "regression"
+  },
+  "allowedPaths": [
+    ".github/workflows/ci.yml",
+    "project/TICKETS.md",
+    "project/ticket-013/**"
+  ],
+  "forbiddenPaths": ["project/ticket-*/user-*.md"],
+  "stacks": [],
+  "dependsOn": ["ticket-012"],
+  "conflictsWith": [],
+  "integrationTicket": null,
+  "delivery": {
+    "acceptedBaseSha": "6fb450a2492925516089e5812854bc380ad350e1",
+    "targetBranch": "main",
+    "outcome": "Legacy Twin CI keeps exact pre-merge governance but treats the protected merge receipt as terminal on default-branch pushes, while its remaining reusable-governance paths use the adopted immutable standard revision",
+    "nonGoals": [
+      "No weakening of pull-request or review governance",
+      "No Twin runtime, product-test, managed-workflow or repository-ruleset change",
+      "No rewrite of the terminal PR #18 receipt or ticket-012 lifecycle carriers"
+    ],
+    "complexity": "XS",
+    "estimatedMinutes": 10,
+    "budgets": {
+      "maxImplementationFiles": 1,
+      "maxAffectedComponents": 1,
+      "maxPublicInterfaceChanges": 0,
+      "maxRuntimeDependencies": 0
+    },
+    "architecture": {
+      "status": "accepted",
+      "decision": "Separate pre-merge governance from post-merge verification in the repository-specific workflow: exact range gates remain on reviewable heads, while protected main pushes consume the terminal receipt and run product verification only",
+      "components": [
+        {
+          "name": "legacy-twin-ci",
+          "paths": [".github/workflows/ci.yml"]
+        }
+      ],
+      "responsibilityChanges": false,
+      "interfaceChanges": [],
+      "dataChanges": [],
+      "ui": {"impact": "none", "states": [], "evidence": []},
+      "rollback": "Revert the unmerged ticket commit; accepted base 6fb450a2492925516089e5812854bc380ad350e1 remains unchanged"
+    },
+    "runtimeDependencies": [],
+    "validation": [
+      {
+        "criterion": "AC-01",
+        "commands": ["Inspect the Linux and PowerShell default-branch branches in .github/workflows/ci.yml"],
+        "evidence": "Default-branch pushes skip ticket-governance replay while Linux still runs host and networkless-container tests"
+      },
+      {
+        "criterion": "AC-02",
+        "commands": ["Inspect pull-request and review range resolution in both shells"],
+        "evidence": "Both platforms retain non-zero full-SHA validation and exact base/head invocation before merge"
+      },
+      {
+        "criterion": "AC-03",
+        "commands": ["Parse .github/workflows/ci.yml as YAML", "Verify immutable action and reusable-workflow revisions"],
+        "evidence": "The push condition is absent and remaining reusable governance pins published new-project 0.19.22 revision f7fe7163e886d5540cedf83d383b6dd99daafd7c"
+      },
+      {
+        "criterion": "AC-04",
+        "commands": ["PYTHONPATH=src python3 -m unittest discover -s tests -q", "docker build -t twin-ticket-013 .", "docker run --rm --network none twin-ticket-013", "./project/governance-check.sh --actor agent --base 6fb450a2492925516089e5812854bc380ad350e1 --head HEAD"],
+        "evidence": "Local product verification and exact pre-merge governance pass; post-merge GitHub Actions is observed separately"
+      }
+    ]
+  }
+}
