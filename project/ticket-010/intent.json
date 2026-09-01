@@ -1,0 +1,69 @@
+{
+  "schema": "new-project.intent/v3",
+  "ticket": "ticket-010",
+  "summary": "Recover and clarify reference DigitalTwin source snapshots",
+  "workstream": "governance",
+  "classification": {
+    "kind": "BUG",
+    "priority": "P1",
+    "origin": "regression"
+  },
+  "allowedPaths": [
+    "README.md",
+    "project/ticket-010/**",
+    "TODO.md",
+    "project/TICKETS.md"
+  ],
+  "forbiddenPaths": ["project/ticket-*/user-*.md"],
+  "stacks": ["python", "docker"],
+  "dependsOn": [],
+  "conflictsWith": [],
+  "integrationTicket": null,
+  "delivery": {
+    "acceptedBaseSha": "a3a8b759dc87bc4398f86bf8df25a16f1309314e",
+    "targetBranch": "main",
+    "outcome": "The README accurately distinguishes live source repositories from fingerprinted local provider-twin snapshots while preserving the still-relevant intent recovered from closed PR #13",
+    "nonGoals": [
+      "Do not add or change a normative profile contract source",
+      "Do not claim that local exported snapshots are public GitHub repositories",
+      "Do not republish, move or modify the source snapshot directories",
+      "Do not merge the successor pull request or delete the recovery ref"
+    ],
+    "complexity": "S",
+    "estimatedMinutes": 20,
+    "budgets": {
+      "maxImplementationFiles": 1,
+      "maxAffectedComponents": 1,
+      "maxPublicInterfaceChanges": 0,
+      "maxRuntimeDependencies": 0
+    },
+    "architecture": {
+      "status": "accepted",
+      "decision": "Keep the recovered namespace correction but label digitaltwin-run provider inputs as local exported snapshots, retain subactor/twin-probes as a live governance/probe source, and make provenance non-dependency status explicit",
+      "components": [
+        {
+          "name": "reference-source-provenance",
+          "paths": ["README.md"]
+        }
+      ],
+      "responsibilityChanges": false,
+      "interfaceChanges": [],
+      "dataChanges": [],
+      "ui": {"impact": "none", "states": [], "evidence": []},
+      "rollback": "Revert the ticket-010 README delta while retaining the immutable recovery ref and its external audit evidence"
+    },
+    "runtimeDependencies": [],
+    "validation": [
+      {
+        "criterion": "AC-04",
+        "commands": [
+          "PYTHONPATH=src python3 -m unittest discover -s tests -v",
+          "docker build -t twin-ticket-010 .",
+          "docker run --rm --network none twin-ticket-010",
+          "./project/governance-check.sh --actor agent --base a3a8b759dc87bc4398f86bf8df25a16f1309314e --head HEAD"
+        ],
+        "evidence": "The host and networkless container suites pass, and the exact diff stays within one implementation file, one affected component and the declared governance scope"
+      }
+    ]
+  }
+}
