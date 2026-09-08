@@ -15,4 +15,4 @@ Canonical fleet evidence: `subactor/docs/architecture/analysis/local-ci-adoption
 
 SESSION_EXECUTION_AUTHORIZATION: continue the preserved adoption, test and publish Worktrees v5; exact target-owned adoption paths are assigned before the updater runs.
 
-SESSION_EXECUTION_AUTHORIZATION: trusted runner PLF-13342 binds this preallocated ticket to PR #20 at frozen head `db0ad4125c034f5765d8c5d3af9b16c2114985a8`; `delivery.acceptedBaseSha` is the fetched main merge-base `8182bfb3bf809c013ca312e3302cc8420e53c24e`.
+SESSION_EXECUTION_AUTHORIZATION: trusted runner PLF-13357 binds this preallocated ticket to PR #20 at frozen head `bce34249d5b806d6edfcb0e0af56f08861622a4b`; `delivery.acceptedBaseSha` is the fetched main merge-base `8182bfb3bf809c013ca312e3302cc8420e53c24e`.

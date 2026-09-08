@@ -70,7 +70,7 @@
   "delivery": {
     "acceptedBaseSha": "8182bfb3bf809c013ca312e3302cc8420e53c24e",
     "targetBranch": "main",
-    "outcome": "Adopt immutable published local CI publication instructions and repair PR #20 required checks while preserving protected checks and custom manifest settings.",
+    "outcome": "Adopt immutable published local CI publication instructions and repair PR #20 required checks by validating reviewable heads against the fetched base-branch merge-base while preserving protected checks and custom manifest settings.",
     "nonGoals": [
       "No migration of executor profiles, required checks, credentials or runtime deployments."
     ],
@@ -84,7 +84,7 @@
     },
     "architecture": {
       "status": "accepted",
-      "decision": "Resume the preserved adoption through Goal, then bind PR #20's complete frozen diff and bounded required-check repair to this single integration ticket. Before updating, assign its exact non-managed cross-cutting adoption paths to integration; preserve existing owners and all required checks. Verify the atomic managed payload independently.",
+      "decision": "Resume the preserved adoption through Goal, then bind PR #20's complete frozen diff and bounded required-check repair to this single integration ticket. Before updating, assign its exact non-managed cross-cutting adoption paths to integration; preserve existing owners and all required checks. Verify the atomic managed payload independently, and select CI governance ranges from the fetched base-branch merge-base so moving event base SHAs do not invalidate the frozen PR diff.",
       "components": [
         {
           "name": "published-governance-adoption",
@@ -168,9 +168,10 @@
         "criterion": "AC-02",
         "commands": [
           "PYTHONPATH=src python3 -m unittest discover -s tests -v",
+          "python3 -c 'import pathlib, yaml; yaml.safe_load(pathlib.Path(\".github/workflows/ci.yml\").read_text())'",
           "./project/governance-check.sh --actor agent --base 8182bfb3bf809c013ca312e3302cc8420e53c24e --head HEAD"
         ],
-        "evidence": "Focused host tests and exact PR-diff governance pass for the fetched main merge-base."
+        "evidence": "Focused host tests, workflow syntax and exact PR-diff governance pass for the fetched main merge-base."
       },
       {
         "criterion": "AC-03",

@@ -40,7 +40,7 @@ jobs:
         shell: bash
         env:
           DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
-          EVENT_BASE: ${{ github.event.pull_request.base.sha || github.event.before }}
+          EVENT_BASE_REF: ${{ github.event.pull_request.base.ref || github.event.repository.default_branch }}
           EVENT_HEAD: ${{ github.event.pull_request.head.sha || github.sha }}
           EVENT_NAME: ${{ github.event_name }}
         run: |
@@ -53,11 +53,12 @@ jobs:
           if [[ "${{ github.ref_name }}" == "${{ github.event.repository.default_branch }}" ]]; then
             echo "Protected merge receipt is terminal; skipping ticket-governance replay."
           elif [[ "$EVENT_NAME" == "pull_request" || "$EVENT_NAME" == "pull_request_review" ]]; then
-            base="$EVENT_BASE"
-            if [[ ! "$base" =~ ^[0-9a-f]{40}$ || "$base" == 0000000000000000000000000000000000000000 ]]; then
-              echo "Event governance requires an exact non-zero base SHA." >&2
+            if [[ -z "$EVENT_BASE_REF" || "$EVENT_BASE_REF" == *..* || "$EVENT_BASE_REF" == /* ]]; then
+              echo "Event governance requires a safe base ref." >&2
               exit 1
             fi
+            git fetch --no-tags origin "refs/heads/${EVENT_BASE_REF}:refs/remotes/origin/${EVENT_BASE_REF}"
+            base="$(git merge-base "origin/${EVENT_BASE_REF}" "$EVENT_HEAD")"
             ./project/governance-check.sh --actor ci --base "$base" --head "$EVENT_HEAD"
           else
             git fetch --no-tags origin "refs/heads/${DEFAULT_BRANCH}:refs/remotes/origin/${DEFAULT_BRANCH}"
@@ -90,7 +91,7 @@ jobs:
         shell: pwsh
         env:
           DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
-          EVENT_BASE: ${{ github.event.pull_request.base.sha || github.event.before }}
+          EVENT_BASE_REF: ${{ github.event.pull_request.base.ref || github.event.repository.default_branch }}
           EVENT_HEAD: ${{ github.event.pull_request.head.sha || github.sha }}
           EVENT_NAME: ${{ github.event_name }}
         run: |
@@ -98,10 +99,13 @@ jobs:
           if ('${{ github.ref_name }}' -eq '${{ github.event.repository.default_branch }}') {
             Write-Host 'Protected merge receipt is terminal; skipping ticket-governance replay.'
           } elseif ($env:EVENT_NAME -eq 'pull_request' -or $env:EVENT_NAME -eq 'pull_request_review') {
-            $base = $env:EVENT_BASE
-            if ($base -notmatch '^[0-9a-f]{40}$' -or $base -eq ('0' * 40)) {
-              throw 'Event governance requires an exact non-zero base SHA.'
+            if ([string]::IsNullOrWhiteSpace($env:EVENT_BASE_REF) -or $env:EVENT_BASE_REF.Contains('..') -or $env:EVENT_BASE_REF.StartsWith('/')) {
+              throw 'Event governance requires a safe base ref.'
             }
+            git fetch --no-tags origin "refs/heads/$($env:EVENT_BASE_REF):refs/remotes/origin/$($env:EVENT_BASE_REF)"
+            if ($LASTEXITCODE -ne 0) { throw 'base branch fetch failed' }
+            $base = (git merge-base "origin/$($env:EVENT_BASE_REF)" $env:EVENT_HEAD).Trim()
+            if ($LASTEXITCODE -ne 0) { throw 'pull-request merge-base resolution failed' }
             ./project/governance-check.bat --actor ci --base $base --head $env:EVENT_HEAD
             if ($LASTEXITCODE -ne 0) { throw 'Windows governance failed' }
           } else {
