@@ -24,3 +24,5 @@ SESSION_EXECUTION_AUTHORIZATION: continue, test and push the bounded PLF-13393 r
 AC-05: Harden the target-owned Linux and Windows CI governance fetch path so
 remote-tracking refs are refreshed with an explicit forced refspec and resolved
 head/base revisions fail closed unless they are exact non-zero commit SHAs.
+
+AC-06: Restore the immutable published managed files after independently approved Autonom #148 stopped interpreting trusted GitHub billing failures as source repair requests. Preserve PLF-13393 target-owned CI changes. Runtime canary at b8e36abd60dd870d8f84929cb4fec36ff204b9f7 classified Twin and Subauth as infrastructure waits without mutations; native Windows verification remains required. Evidence: receipt:ci-infrastructure-repair-20260908.

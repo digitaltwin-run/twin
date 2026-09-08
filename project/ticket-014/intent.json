@@ -85,7 +85,7 @@
     },
     "architecture": {
       "status": "accepted",
-      "decision": "Bind PR #20's complete frozen diff and bounded PLF-13393 required-check repair to this single integration ticket. The target governance check must validate candidate PR content against the fetched base-branch merge-base, so Linux, Windows and reusable governance entrypoints derive the review range from the fetched base ref and exact head instead of trusting a moving pull-request base SHA. Preserve existing owners, required checks and managed adoption integrity by refreshing only the affected lock digests. The target-owned CI workflow uses forced base-ref fetches and full non-zero SHA guards so reused runner refs cannot make Linux or Windows governance validate an ambiguous range.",
+      "decision": "Bind PR #20's complete frozen diff and bounded PLF-13393 required-check repair to this single integration ticket. The target governance check must validate candidate PR content against the fetched base-branch merge-base, so Linux, Windows and reusable governance entrypoints derive the review range from the fetched base ref and exact head instead of trusting a moving pull-request base SHA. Restore the immutable managed package only through Goal adoption at its published source pin; changes to managed entrypoints belong upstream. Preserve target-owned CI changes and all required checks. The target-owned CI workflow uses forced base-ref fetches and full non-zero SHA guards so reused runner refs cannot make Linux or Windows governance validate an ambiguous range.",
       "components": [
         {
           "name": "published-governance-adoption",
