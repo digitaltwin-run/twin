@@ -71,7 +71,7 @@
   "delivery": {
     "acceptedBaseSha": "8182bfb3bf809c013ca312e3302cc8420e53c24e",
     "targetBranch": "main",
-    "outcome": "Adopt immutable published local CI publication instructions and repair PR #20 required checks by validating reviewable heads, including Linux, Windows and reusable governance workflows, against the fetched base-branch merge-base while preserving protected checks and custom manifest settings.",
+    "outcome": "Adopt immutable published local CI publication instructions and repair PR #20 required checks by validating reviewable heads, including Linux, Windows and reusable governance workflows, against the fetched base-branch merge-base while preserving protected checks and custom manifest settings. The PLF-13393 retry additionally hardens the target-owned CI workflow to force-refresh fetched base refs and reject non-exact head or merge-base revisions before governance runs.",
     "nonGoals": [
       "No migration of executor profiles, required checks, credentials or runtime deployments."
     ],
@@ -85,7 +85,7 @@
     },
     "architecture": {
       "status": "accepted",
-      "decision": "Bind PR #20's complete frozen diff and bounded PLF-13385 required-check repair to this single integration ticket. The target governance check must validate candidate PR content against the fetched base-branch merge-base, so Linux, Windows and reusable governance entrypoints derive the review range from the fetched base ref and exact head instead of trusting a moving pull-request base SHA. Preserve existing owners, required checks and managed adoption integrity by refreshing only the affected lock digests.",
+      "decision": "Bind PR #20's complete frozen diff and bounded PLF-13393 required-check repair to this single integration ticket. The target governance check must validate candidate PR content against the fetched base-branch merge-base, so Linux, Windows and reusable governance entrypoints derive the review range from the fetched base ref and exact head instead of trusting a moving pull-request base SHA. Preserve existing owners, required checks and managed adoption integrity by refreshing only the affected lock digests. The target-owned CI workflow uses forced base-ref fetches and full non-zero SHA guards so reused runner refs cannot make Linux or Windows governance validate an ambiguous range.",
       "components": [
         {
           "name": "published-governance-adoption",
@@ -181,6 +181,14 @@
           "Run todo2code comparison and emit ticket2dsl, code2dsl, docs2dsl and service2dsl evidence when the configured local tools are available."
         ],
         "evidence": "The local PATH and repository contain no todo2code, ticket2dsl, code2dsl, docs2dsl or service2dsl executable; the trusted runner remains responsible for authoritative evidence emission."
+      },
+      {
+        "criterion": "AC-05",
+        "commands": [
+          "python3 -c 'import pathlib, yaml; yaml.safe_load(pathlib.Path(\".github/workflows/ci.yml\").read_text())'",
+          "./project/governance-check.sh --actor agent --base 8182bfb3bf809c013ca312e3302cc8420e53c24e --head HEAD"
+        ],
+        "evidence": "The target-owned CI workflow force-refreshes fetched base refs and rejects non-exact head or merge-base revisions before invoking Linux and Windows governance."
       }
     ]
   }

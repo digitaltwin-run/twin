@@ -57,12 +57,24 @@ jobs:
               echo "Event governance requires a safe base ref." >&2
               exit 1
             fi
-            git fetch --no-tags origin "refs/heads/${EVENT_BASE_REF}:refs/remotes/origin/${EVENT_BASE_REF}"
+            if [[ ! "$EVENT_HEAD" =~ ^[0-9a-f]{40}$ || "$EVENT_HEAD" == 0000000000000000000000000000000000000000 ]]; then
+              echo "Event governance requires an exact non-zero head SHA." >&2
+              exit 1
+            fi
+            git fetch --no-tags origin "+refs/heads/${EVENT_BASE_REF}:refs/remotes/origin/${EVENT_BASE_REF}"
             base="$(git merge-base "origin/${EVENT_BASE_REF}" "$EVENT_HEAD")"
+            if [[ ! "$base" =~ ^[0-9a-f]{40}$ || "$base" == 0000000000000000000000000000000000000000 ]]; then
+              echo "Event governance requires an exact non-zero merge base." >&2
+              exit 1
+            fi
             ./project/governance-check.sh --actor ci --base "$base" --head "$EVENT_HEAD"
           else
-            git fetch --no-tags origin "refs/heads/${DEFAULT_BRANCH}:refs/remotes/origin/${DEFAULT_BRANCH}"
+            git fetch --no-tags origin "+refs/heads/${DEFAULT_BRANCH}:refs/remotes/origin/${DEFAULT_BRANCH}"
             base="$(git merge-base "origin/${DEFAULT_BRANCH}" "$EVENT_HEAD")"
+            if [[ ! "$base" =~ ^[0-9a-f]{40}$ || "$base" == 0000000000000000000000000000000000000000 ]]; then
+              echo "Event governance requires an exact non-zero merge base." >&2
+              exit 1
+            fi
             ./project/governance-check.sh --actor ci --base "$base" --head "$EVENT_HEAD"
           fi
       - name: Validate networkless container
@@ -102,17 +114,26 @@ jobs:
             if ([string]::IsNullOrWhiteSpace($env:EVENT_BASE_REF) -or $env:EVENT_BASE_REF.Contains('..') -or $env:EVENT_BASE_REF.StartsWith('/')) {
               throw 'Event governance requires a safe base ref.'
             }
-            git fetch --no-tags origin "refs/heads/$($env:EVENT_BASE_REF):refs/remotes/origin/$($env:EVENT_BASE_REF)"
+            if ($env:EVENT_HEAD -notmatch '^[0-9a-f]{40}$' -or $env:EVENT_HEAD -eq ('0' * 40)) {
+              throw 'Event governance requires an exact non-zero head SHA.'
+            }
+            git fetch --no-tags origin "+refs/heads/$($env:EVENT_BASE_REF):refs/remotes/origin/$($env:EVENT_BASE_REF)"
             if ($LASTEXITCODE -ne 0) { throw 'base branch fetch failed' }
             $base = (git merge-base "origin/$($env:EVENT_BASE_REF)" $env:EVENT_HEAD).Trim()
             if ($LASTEXITCODE -ne 0) { throw 'pull-request merge-base resolution failed' }
+            if ($base -notmatch '^[0-9a-f]{40}$' -or $base -eq ('0' * 40)) {
+              throw 'Event governance requires an exact non-zero merge base.'
+            }
             ./project/governance-check.bat --actor ci --base $base --head $env:EVENT_HEAD
             if ($LASTEXITCODE -ne 0) { throw 'Windows governance failed' }
           } else {
-            git fetch --no-tags origin "refs/heads/$($env:DEFAULT_BRANCH):refs/remotes/origin/$($env:DEFAULT_BRANCH)"
+            git fetch --no-tags origin "+refs/heads/$($env:DEFAULT_BRANCH):refs/remotes/origin/$($env:DEFAULT_BRANCH)"
             if ($LASTEXITCODE -ne 0) { throw 'default branch fetch failed' }
             $base = (git merge-base "origin/$($env:DEFAULT_BRANCH)" $env:EVENT_HEAD).Trim()
             if ($LASTEXITCODE -ne 0) { throw 'default branch merge-base resolution failed' }
+            if ($base -notmatch '^[0-9a-f]{40}$' -or $base -eq ('0' * 40)) {
+              throw 'Event governance requires an exact non-zero merge base.'
+            }
             ./project/governance-check.bat --actor ci --base $base --head $env:EVENT_HEAD
             if ($LASTEXITCODE -ne 0) { throw 'Windows governance failed' }
           }
