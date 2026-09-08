@@ -24,6 +24,7 @@
         ".governance/ticket-allocation.json",
         ".github/workflows/ci.yml",
         "AGENTS.md",
+        "project/governance-check.bat",
         "package.json",
         "pyproject.toml",
         "go.mod",
@@ -91,6 +92,7 @@
           "error/**",
           "models/**",
           "proto/**",
+          "project/governance-check.bat",
           ".gitignore"
         ]
       },
