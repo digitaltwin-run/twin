@@ -85,7 +85,7 @@
     },
     "architecture": {
       "status": "accepted",
-      "decision": "Resume the preserved adoption through Goal, then bind PR #20's complete frozen diff and bounded required-check repair to this single integration ticket. Before updating, assign its exact non-managed cross-cutting adoption paths to integration; preserve existing owners and all required checks. Verify the atomic managed payload independently, and select CI governance ranges from the fetched base-branch merge-base so moving event base SHAs do not invalidate the frozen PR diff.",
+      "decision": "Resume the preserved adoption through Goal, then bind PR #20's complete frozen diff and bounded required-check repair to this single integration ticket. Before updating, assign its exact non-managed cross-cutting adoption paths to integration; preserve existing owners and all required checks. Verify the atomic managed payload independently, and select CI governance ranges from the fetched base-branch merge-base so moving event base SHAs do not invalidate the frozen PR diff. Restore managed drift only through the published Goal updater; any future change to a managed entrypoint belongs upstream, while target-owned CI remains preserved.",
       "components": [
         {
           "name": "published-governance-adoption",

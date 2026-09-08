@@ -98,7 +98,7 @@ jobs:
       - name: Run the managed governance gate
         shell: bash
         env:
-          BASE_REF: ${{ github.event.pull_request.base.ref }}
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
           HEAD_SHA: ${{ github.event.pull_request.head.sha }}
         run: |
           set -euo pipefail
@@ -108,14 +108,8 @@ jobs:
             --stack-profiles .governance/stack-profiles.json --actor ci)
           # A pull request is validated as a range; a scheduled or dispatched run
           # has no range, so it validates the repository as it stands.
-          if [[ -n "${BASE_REF:-}" && -n "${HEAD_SHA:-}" ]]; then
-            if [[ "$BASE_REF" == *..* || "$BASE_REF" == /* ]]; then
-              echo "Event governance requires a safe base ref." >&2
-              exit 1
-            fi
-            git fetch --no-tags origin "refs/heads/${BASE_REF}:refs/remotes/origin/${BASE_REF}"
-            base="$(git merge-base "origin/${BASE_REF}" "$HEAD_SHA")"
-            arguments+=(--base "$base" --head "$HEAD_SHA")
+          if [[ -n "${BASE_SHA:-}" && -n "${HEAD_SHA:-}" ]]; then
+            arguments+=(--base "$BASE_SHA" --head "$HEAD_SHA")
           else
             arguments+=(--changed-file project/TICKETS.md)
           fi
