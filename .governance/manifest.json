@@ -88,7 +88,8 @@
           "events/**",
           "error/**",
           "models/**",
-          "proto/**"
+          "proto/**",
+          ".gitignore"
         ]
       },
       "interfaces": {
@@ -202,7 +203,7 @@
   ],
   "standard": {
     "id": "wellmanifest/new-project",
-    "version": "0.19.22"
+    "version": "0.20.14"
   },
   "ticket": {
     "activeStatuses": [

@@ -17,8 +17,8 @@ py-modules = ["twin_standard"]
 package-dir = {"" = "src"}
 
 [tool.wellmanifest]
-standard = "0.19.22"
-revision = "f7fe7163e886d5540cedf83d383b6dd99daafd7c"
+standard = "0.20.14"
+revision = "e65857ea2f62b20e4b830e3c5f611878bf31bb25"
 gate = "project/governance-check.sh"
 
 [tool.pytest.ini_options]
