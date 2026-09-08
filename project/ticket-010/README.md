@@ -2,7 +2,7 @@
 
 - **ID**: ticket-010
 - **Owner**: unresolved:human
-- **Status**: IN_PROGRESS
+- **Status**: BLOCKED
 - **Workflow state**: PUBLICATION
 - **Created**: 2026-09-01
 

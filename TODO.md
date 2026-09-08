@@ -2,18 +2,24 @@
 
 ## Active
 
-- [ ] [`ticket-011`](project/ticket-011/README.md): adopt the exact published
-  `wellmanifest/new-project` 0.19.22 revision through reviewed Goal preflight
-  and atomic upgrade, preserve Twin-owned runtime and documentation, and prove
-  host, networkless Docker and exact-range governance before an unmerged PR.
-  Status: `IN_PROGRESS / PUBLICATION`; classification: `SERVICE / P1 / requested`;
-  follow-up governance adoption issue #15 after recovery PR #16.
+- [ ] [`ticket-014`](project/ticket-014/README.md): adopt published
+  `wellmanifest/new-project` 0.20.14 with local CI publication policy and repair
+  PR #20 required `test` and `windows-governance` checks for the complete frozen
+  PR diff. Status: `IN_PROGRESS / EDIT`; classification:
+  `SERVICE / P2 / requested`; trusted runner PLF-13342 owns publication.
 
-- [ ] [`ticket-010`](project/ticket-010/README.md): recover the useful source
-  correction from closed PR #13 while distinguishing live repositories from
-  local exported provider snapshots. Status: `IN_PROGRESS / PUBLICATION`;
-  classification: `BUG / P1 / regression`; successor PR will close GitHub
-  issue #14 without merging or deleting the recovery ref.
+## Blocked
+
+- [ ] [`ticket-011`](project/ticket-011/README.md): prior 0.19.22 adoption
+  publication evidence is preserved while PR #20 is represented by `ticket-014`
+  as the single integration ticket. Status: `BLOCKED / PUBLICATION`;
+  classification: `SERVICE / P1 / requested`.
+
+- [ ] [`ticket-010`](project/ticket-010/README.md): recovery evidence is
+  preserved while PR #20 is represented by `ticket-014` as the single
+  integration ticket. Status: `BLOCKED / PUBLICATION`; classification:
+  `BUG / P1 / regression`.
+
 - [x] [`ticket-006`](project/ticket-006/README.md): bind the lifecycle trait to
   an immutable blueprint revision from the separately versioned
   `wellmanifest/twin-lifecycle` standard, so the stage graph behind

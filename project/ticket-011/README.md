@@ -2,7 +2,7 @@
 
 - **ID**: ticket-011
 - **Owner**: requesting user, represented by the conversation
-- **Status**: IN_PROGRESS
+- **Status**: BLOCKED
 - **Workflow state**: PUBLICATION
 - **Created**: 2026-09-01
 

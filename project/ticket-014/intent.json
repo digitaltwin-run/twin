@@ -46,10 +46,18 @@
     ".subactor/manifest.json",
     "AGENTS.md",
     "GEMINI.md",
-    "project/ticket-014/**",
+    "TODO.md",
+    "project/TICKETS.md",
+    "project/ticket-010/README.md",
+    "project/ticket-011/README.md",
+    "project/ticket-012/README.md",
+    "project/ticket-013/README.md",
+    "project/ticket-014/README.md",
+    "project/ticket-014/intent.json",
     "scripts/install-agent-hosts.sh",
     "worktree-guard.yaml",
     "pyproject.toml",
+    ".github/workflows/ci.yml",
     ".github/workflows/new-project-governance.yml"
   ],
   "forbiddenPaths": [
@@ -62,7 +70,7 @@
   "delivery": {
     "acceptedBaseSha": "8182bfb3bf809c013ca312e3302cc8420e53c24e",
     "targetBranch": "main",
-    "outcome": "Adopt immutable published local CI publication instructions while preserving protected checks and custom manifest settings.",
+    "outcome": "Adopt immutable published local CI publication instructions and repair PR #20 required checks while preserving protected checks and custom manifest settings.",
     "nonGoals": [
       "No migration of executor profiles, required checks, credentials or runtime deployments."
     ],
@@ -76,7 +84,7 @@
     },
     "architecture": {
       "status": "accepted",
-      "decision": "Resume the preserved adoption through Goal. Before updating, assign its exact non-managed cross-cutting adoption paths to integration; preserve existing owners and all required checks. Verify the atomic managed payload independently.",
+      "decision": "Resume the preserved adoption through Goal, then bind PR #20's complete frozen diff and bounded required-check repair to this single integration ticket. Before updating, assign its exact non-managed cross-cutting adoption paths to integration; preserve existing owners and all required checks. Verify the atomic managed payload independently.",
       "components": [
         {
           "name": "published-governance-adoption",
@@ -118,9 +126,16 @@
             ".subactor/manifest.json",
             "AGENTS.md",
             "GEMINI.md",
+            "TODO.md",
+            "project/TICKETS.md",
+            "project/ticket-010/README.md",
+            "project/ticket-011/README.md",
+            "project/ticket-012/README.md",
+            "project/ticket-013/README.md",
             "scripts/install-agent-hosts.sh",
             "worktree-guard.yaml",
             "pyproject.toml",
+            ".github/workflows/ci.yml",
             ".github/workflows/new-project-governance.yml"
           ]
         }
@@ -148,6 +163,21 @@
           "./project/governance-check.sh --actor agent"
         ],
         "evidence": "receipt:local:ticket-014-local-ci-adoption"
+      },
+      {
+        "criterion": "AC-02",
+        "commands": [
+          "PYTHONPATH=src python3 -m unittest discover -s tests -v",
+          "./project/governance-check.sh --actor agent --base 8182bfb3bf809c013ca312e3302cc8420e53c24e --head HEAD"
+        ],
+        "evidence": "Focused host tests and exact PR-diff governance pass for the fetched main merge-base."
+      },
+      {
+        "criterion": "AC-03",
+        "commands": [
+          "Run todo2code comparison and emit ticket2dsl, code2dsl, docs2dsl and service2dsl evidence when the configured local tools are available."
+        ],
+        "evidence": "The local PATH and repository contain no todo2code, ticket2dsl, code2dsl, docs2dsl or service2dsl executable; the trusted runner remains responsible for authoritative evidence emission."
       }
     ]
   }
