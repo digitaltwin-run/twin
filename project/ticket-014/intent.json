@@ -71,7 +71,7 @@
   "delivery": {
     "acceptedBaseSha": "8182bfb3bf809c013ca312e3302cc8420e53c24e",
     "targetBranch": "main",
-    "outcome": "Adopt immutable published local CI publication instructions and repair PR #20 required checks by validating reviewable heads against the fetched base-branch merge-base while preserving protected checks and custom manifest settings.",
+    "outcome": "Adopt immutable published local CI publication instructions and repair PR #20 required checks by validating reviewable heads, including the reusable governance workflow, against the fetched base-branch merge-base while preserving protected checks and custom manifest settings.",
     "nonGoals": [
       "No migration of executor profiles, required checks, credentials or runtime deployments."
     ],
@@ -173,7 +173,7 @@
           "python3 -c 'import pathlib, yaml; yaml.safe_load(pathlib.Path(\".github/workflows/ci.yml\").read_text())'",
           "./project/governance-check.sh --actor agent --base 8182bfb3bf809c013ca312e3302cc8420e53c24e --head HEAD"
         ],
-        "evidence": "Focused host tests, workflow syntax and exact PR-diff governance pass for the fetched main merge-base."
+        "evidence": "Focused host tests, workflow syntax and exact PR-diff governance pass for the fetched main merge-base; reusable governance also resolves pull-request bases from the fetched branch merge-base."
       },
       {
         "criterion": "AC-03",

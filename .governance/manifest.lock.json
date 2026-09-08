@@ -4,7 +4,7 @@
     ".cursor/rules/new-project-standard.mdc": "72699a5cb3718be9a50603eda9c8a6d960f21b1949fdfe2b35013385b22f9afe",
     ".githooks/pre-commit": "8299a163efdb520df8726769a7f59a3bc011d8581a7a028e40e4e3c0eb7f52d4",
     ".github/copilot-instructions.md": "b31f9ba957ce108a83851f48f8dbff8b4301d1c744a77fe76914e6bb8499aca3",
-    ".github/workflows/new-project-governance.yml": "b41d0df4cb11de5bd1458976e0a1f69ee6733593cd9bb93d68fbbb7fe2e52929",
+    ".github/workflows/new-project-governance.yml": "66cb1c14516f22368c4f9cf55b645b02070de69f095f72f674925fdfc755fec4",
     ".governance/AGENT_DECISIONS.md": "fb8fcbb00ba4100ec230aea34ef4634852dae30929eb9eaeafe548fbc7b1de87",
     ".governance/adoption-bindings.json": "9a6015fde26226d4c55764c81c1ab8e8d42fcf64661533a71d90fcc488edaeb3",
     ".governance/adoption-bindings.schema.json": "0fbad765ca67924b7b3340dcad09f262b62c979740a291da7dacd8e48d28241c",
