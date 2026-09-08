@@ -15,8 +15,8 @@ Canonical fleet evidence: `subactor/docs/architecture/analysis/local-ci-adoption
 
 SESSION_EXECUTION_AUTHORIZATION: continue the preserved adoption, test and publish Worktrees v5; exact target-owned adoption paths are assigned before the updater runs.
 
-SESSION_EXECUTION_AUTHORIZATION: trusted runner PLF-13384 binds this preallocated ticket to PR #20 at frozen head `a96b9cffb5f363ac318917150145ec7b69722cd4`; `delivery.acceptedBaseSha` is the fetched main merge-base `8182bfb3bf809c013ca312e3302cc8420e53c24e`.
+SESSION_EXECUTION_AUTHORIZATION: trusted runner PLF-13385 binds this preallocated ticket to PR #20 at frozen head `ee97263e13c2ae83b7865cbda98fddfd3f895bf7`; `delivery.acceptedBaseSha` is the fetched main merge-base `8182bfb3bf809c013ca312e3302cc8420e53c24e`.
 
-AC-04: Restore the exact published 0.20.14 managed workflow and Windows entrypoint through Goal adoption; preserve target-owned CI behavior and the Windows requirement. The earlier direct workflow/hash edits fail independent protected-byte verification.
+AC-04: Repair reusable PR governance range selection and the Windows entrypoint while preserving target-owned CI behavior, the Windows requirement and managed adoption integrity through exact lock digests.
 
-SESSION_EXECUTION_AUTHORIZATION: continue, test and push the bounded repair. Reobserved remote head f6317e40cc3c91c3521550ed44bbb4e9a1690a5d; the clean registered ticket worktree was fast-forwarded without rewriting history. Goal check reports only the managed workflow, managed Windows entrypoint and adoption lock as drift. Raw evidence: receipt:worktrees-platform-verification-20260908.
+SESSION_EXECUTION_AUTHORIZATION: continue, test and push the bounded PLF-13385 repair from frozen head `ee97263e13c2ae83b7865cbda98fddfd3f895bf7`. The repair keeps `ticket-014` as the single integration ticket for the complete frozen PR diff plus the required-check delta and validates PR governance from the fetched base-branch merge-base.
