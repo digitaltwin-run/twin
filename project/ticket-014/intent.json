@@ -1,0 +1,195 @@
+{
+  "schema": "new-project.intent/v3",
+  "ticket": "ticket-014",
+  "summary": "Adopt published governance 0.20.14 and repair PR #20 required checks",
+  "workstream": "integration",
+  "classification": {
+    "kind": "SERVICE",
+    "priority": "P2",
+    "origin": "requested"
+  },
+  "allowedPaths": [
+    ".githooks/pre-commit",
+    ".gitignore",
+    ".governance/AGENT_DECISIONS.md",
+    ".governance/adoption-bindings.json",
+    ".governance/adoption-bindings.schema.json",
+    ".governance/branch-intent-reconciliation.schema.json",
+    ".governance/branch_intent_reconciliation.py",
+    ".governance/branch_lifecycle_check.py",
+    ".governance/diagnostics.json",
+    ".governance/docs/BRANCH_INTENT_RECONCILIATION.md",
+    ".governance/docs/LOCAL_CI_PUBLICATION.md",
+    ".governance/error/GOV-STANDARD-UPDATE.md",
+    ".governance/error/GOV-TICKET-ACTIVITY.md",
+    ".governance/error/GOV-WORKTREE-OVERLAP.md",
+    ".governance/governance_check.py",
+    ".governance/intent.schema.json",
+    ".governance/manifest.base.json",
+    ".governance/manifest.json",
+    ".governance/manifest.lock.json",
+    ".governance/package-manifest.json",
+    ".governance/precommit_standard_update.py",
+    ".governance/standard-adoption.schema.json",
+    ".governance/templates/conftest-worktree-bootstrap.py",
+    ".governance/ticket-activity.json",
+    ".governance/ticket-activity.schema.json",
+    ".governance/ticket_activity.py",
+    ".governance/work-continuity.schema.json",
+    ".governance/work_continuity.py",
+    ".governance/workspace_lifecycle_check.py",
+    ".governance/worktree_overlap_check.py",
+    ".governance/worktree_path_check.py",
+    ".governance/worktrees.lock.json",
+    ".governance/worktrees.schema.json",
+    ".subactor/.gitignore",
+    ".subactor/manifest.json",
+    "AGENTS.md",
+    "GEMINI.md",
+    "TODO.md",
+    "project/TICKETS.md",
+    "project/governance-check.bat",
+    "project/ticket-010/README.md",
+    "project/ticket-011/README.md",
+    "project/ticket-012/README.md",
+    "project/ticket-013/README.md",
+    "project/ticket-014/README.md",
+    "project/ticket-014/intent.json",
+    "scripts/install-agent-hosts.sh",
+    "worktree-guard.yaml",
+    "pyproject.toml",
+    ".github/workflows/ci.yml",
+    ".github/workflows/new-project-governance.yml"
+  ],
+  "forbiddenPaths": [
+    "project/ticket-*/user-*.md"
+  ],
+  "stacks": [],
+  "dependsOn": [],
+  "conflictsWith": [],
+  "integrationTicket": null,
+  "delivery": {
+    "acceptedBaseSha": "8182bfb3bf809c013ca312e3302cc8420e53c24e",
+    "targetBranch": "main",
+    "outcome": "Adopt immutable published local CI publication instructions and repair PR #20 required checks by validating reviewable heads, including Linux, Windows and reusable governance workflows, against the fetched base-branch merge-base while preserving protected checks and custom manifest settings. The PLF-13393 retry additionally hardens the target-owned CI workflow to force-refresh fetched base refs and reject non-exact head or merge-base revisions before governance runs.",
+    "nonGoals": [
+      "No migration of executor profiles, required checks, credentials or runtime deployments."
+    ],
+    "complexity": "M",
+    "estimatedMinutes": 60,
+    "budgets": {
+      "maxImplementationFiles": 9,
+      "maxAffectedComponents": 2,
+      "maxPublicInterfaceChanges": 0,
+      "maxRuntimeDependencies": 0
+    },
+    "architecture": {
+      "status": "accepted",
+      "decision": "Bind PR #20's complete frozen diff and bounded PLF-13393 required-check repair to this single integration ticket. The target governance check must validate candidate PR content against the fetched base-branch merge-base, so Linux, Windows and reusable governance entrypoints derive the review range from the fetched base ref and exact head instead of trusting a moving pull-request base SHA. Restore the immutable managed package only through Goal adoption at its published source pin; changes to managed entrypoints belong upstream. Preserve target-owned CI changes and all required checks. The target-owned CI workflow uses forced base-ref fetches and full non-zero SHA guards so reused runner refs cannot make Linux or Windows governance validate an ambiguous range.",
+      "components": [
+        {
+          "name": "published-governance-adoption",
+          "paths": [
+            ".githooks/pre-commit",
+            ".gitignore",
+            ".governance/AGENT_DECISIONS.md",
+            ".governance/adoption-bindings.json",
+            ".governance/adoption-bindings.schema.json",
+            ".governance/branch-intent-reconciliation.schema.json",
+            ".governance/branch_intent_reconciliation.py",
+            ".governance/branch_lifecycle_check.py",
+            ".governance/diagnostics.json",
+            ".governance/docs/BRANCH_INTENT_RECONCILIATION.md",
+            ".governance/docs/LOCAL_CI_PUBLICATION.md",
+            ".governance/error/GOV-STANDARD-UPDATE.md",
+            ".governance/error/GOV-TICKET-ACTIVITY.md",
+            ".governance/error/GOV-WORKTREE-OVERLAP.md",
+            ".governance/governance_check.py",
+            ".governance/intent.schema.json",
+            ".governance/manifest.base.json",
+            ".governance/manifest.json",
+            ".governance/manifest.lock.json",
+            ".governance/package-manifest.json",
+            ".governance/precommit_standard_update.py",
+            ".governance/standard-adoption.schema.json",
+            ".governance/templates/conftest-worktree-bootstrap.py",
+            ".governance/ticket-activity.json",
+            ".governance/ticket-activity.schema.json",
+            ".governance/ticket_activity.py",
+            ".governance/work-continuity.schema.json",
+            ".governance/work_continuity.py",
+            ".governance/workspace_lifecycle_check.py",
+            ".governance/worktree_overlap_check.py",
+            ".governance/worktree_path_check.py",
+            ".governance/worktrees.lock.json",
+            ".governance/worktrees.schema.json",
+            ".subactor/.gitignore",
+            ".subactor/manifest.json",
+            "AGENTS.md",
+            "GEMINI.md",
+            "TODO.md",
+            "project/TICKETS.md",
+            "project/governance-check.bat",
+            "project/ticket-010/README.md",
+            "project/ticket-011/README.md",
+            "project/ticket-012/README.md",
+            "project/ticket-013/README.md",
+            "scripts/install-agent-hosts.sh",
+            "worktree-guard.yaml",
+            "pyproject.toml",
+            ".github/workflows/ci.yml",
+            ".github/workflows/new-project-governance.yml"
+          ]
+        }
+      ],
+      "responsibilityChanges": true,
+      "interfaceChanges": [],
+      "dataChanges": [],
+      "ui": {
+        "impact": "none",
+        "states": [],
+        "evidence": []
+      },
+      "rollback": "Review a subsequent immutable standard update; preserve previous pins in history."
+    },
+    "runtimeDependencies": [],
+    "standardAdoption": {
+      "sourceRepository": "wellmanifest/new-project",
+      "fromRevision": "f7fe7163e886d5540cedf83d383b6dd99daafd7c",
+      "toRevision": "e65857ea2f62b20e4b830e3c5f611878bf31bb25"
+    },
+    "validation": [
+      {
+        "criterion": "AC-01",
+        "commands": [
+          "./project/governance-check.sh --actor agent"
+        ],
+        "evidence": "receipt:local:ticket-014-local-ci-adoption"
+      },
+      {
+        "criterion": "AC-02",
+        "commands": [
+          "PYTHONPATH=src python3 -m unittest discover -s tests -v",
+          "python3 -c 'import pathlib, yaml; yaml.safe_load(pathlib.Path(\".github/workflows/ci.yml\").read_text())'",
+          "./project/governance-check.sh --actor agent --base 8182bfb3bf809c013ca312e3302cc8420e53c24e --head HEAD"
+        ],
+        "evidence": "Focused host tests, workflow syntax and exact PR-diff governance pass for the fetched main merge-base; reusable governance also resolves pull-request bases from the fetched branch merge-base."
+      },
+      {
+        "criterion": "AC-03",
+        "commands": [
+          "Run todo2code comparison and emit ticket2dsl, code2dsl, docs2dsl and service2dsl evidence when the configured local tools are available."
+        ],
+        "evidence": "The local PATH and repository contain no todo2code, ticket2dsl, code2dsl, docs2dsl or service2dsl executable; the trusted runner remains responsible for authoritative evidence emission."
+      },
+      {
+        "criterion": "AC-05",
+        "commands": [
+          "python3 -c 'import pathlib, yaml; yaml.safe_load(pathlib.Path(\".github/workflows/ci.yml\").read_text())'",
+          "./project/governance-check.sh --actor agent --base 8182bfb3bf809c013ca312e3302cc8420e53c24e --head HEAD"
+        ],
+        "evidence": "The target-owned CI workflow force-refreshes fetched base refs and rejects non-exact head or merge-base revisions before invoking Linux and Windows governance."
+      }
+    ]
+  }
+}

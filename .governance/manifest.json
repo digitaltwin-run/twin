@@ -22,7 +22,9 @@
         ".governance/required-checks.json",
         ".governance/standard-adoption.json",
         ".governance/ticket-allocation.json",
+        ".github/workflows/ci.yml",
         "AGENTS.md",
+        "project/governance-check.bat",
         "package.json",
         "pyproject.toml",
         "go.mod",
@@ -76,6 +78,7 @@
           ".governance/required-checks.json",
           ".governance/standard-adoption.json",
           ".governance/ticket-allocation.json",
+          ".github/workflows/ci.yml",
           "AGENTS.md",
           "VERSION",
           "package.json",
@@ -88,7 +91,9 @@
           "events/**",
           "error/**",
           "models/**",
-          "proto/**"
+          "proto/**",
+          "project/governance-check.bat",
+          ".gitignore"
         ]
       },
       "interfaces": {
@@ -202,7 +207,7 @@
   ],
   "standard": {
     "id": "wellmanifest/new-project",
-    "version": "0.19.22"
+    "version": "0.20.14"
   },
   "ticket": {
     "activeStatuses": [
