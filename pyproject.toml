@@ -10,15 +10,15 @@ requires-python = ">=3.12"
 dependencies = []
 
 [project.scripts]
-twin-standard = "twin_standard:main"
+twin-standard = "0.20.35"
 
 [tool.setuptools]
 py-modules = ["twin_standard"]
 package-dir = {"" = "src"}
 
 [tool.wellmanifest]
-standard = "0.20.14"
-revision = "e65857ea2f62b20e4b830e3c5f611878bf31bb25"
+standard = "0.20.35"
+revision = "cfaa0bf0ea6b0e7349fed0bb62b5ce15792d687d"
 gate = "project/governance-check.sh"
 
 [tool.pytest.ini_options]
