@@ -13,4 +13,3 @@ if exist "%REPO_ROOT%\.governance\governance_check.py" (
 )
 set "GOVERNANCE_EXIT=%ERRORLEVEL%"
 exit /b %GOVERNANCE_EXIT%
-
