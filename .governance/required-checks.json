@@ -1,7 +1,7 @@
 {
   "schema": "new-project.required-checks/v1",
   "version": 1,
-  "repository": "subactor/twin",
+  "repository": "digitaltwin-run/twin",
   "workflowFile": ".github/workflows/ci.yml",
   "requiredCheckNames": [
     "governance",
